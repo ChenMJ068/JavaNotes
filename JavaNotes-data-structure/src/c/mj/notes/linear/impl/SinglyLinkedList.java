@@ -4,18 +4,50 @@ import c.mj.notes.linear.LList;
 import c.mj.notes.linear.Node;
 
 /**
- * 单链表
+ * 单链表,带头结点
  * @author ChenMJ
  * @version SinglyLinkedList.class, v 0.1 2020/3/31 11:11 n-cz Exp$
  */
 public class SinglyLinkedList<T> implements LList<T> {
 
+    //头指针，指向单链表的头结点
     public Node<T> head;
 
+    /**
+     * 重写默认无参构造，构造一个单链表，并带有头结点，data和next都为null
+     */
     public SinglyLinkedList() {
         head = new Node<T>();
     }
 
+    /**
+     * 浅拷贝构造函数
+     * @param list
+     */
+    /*public SinglyLinkedList(SinglyLinkedList<T> list) {
+        head = list.head;
+    }*/
+
+    /**
+     * 深拷贝构造函数
+     * @param list
+     */
+    public SinglyLinkedList(SinglyLinkedList<T> list) {
+        this();
+        Node<T> node = list.head.next;
+        Node<T> rear = this.head;
+
+        while (node != null){
+            rear.next = new Node<T>(node.data,null);
+            rear = rear.next;
+            node = node.next;
+        }
+    }
+
+    /**
+     * 由指定数组中的多个对象构造单链表，采用尾插入构造单链表
+     * @param element 数据元素
+     */
     public SinglyLinkedList(T[] element) {
         this();
         Node<T> rear = head;
