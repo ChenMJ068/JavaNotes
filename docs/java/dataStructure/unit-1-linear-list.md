@@ -277,7 +277,466 @@ public class Josephus {
 ```
 
 ##3.线性表的链式表示和实现
+线性表的链式存储是用若干地址分散的存储单元存储数据元素，逻辑上相邻的数据元素在物理位置不一定相邻。
+存储一个数据元素的存储单元至少包含两个部分——数据域和地址域，数据域中存储的是数据元素值，地址域存储的是后继元素的地址。
 ###3.1 单链表
+单链表是由一个个结点链接而成
+#### 3.1.1 单链表的结点
 单链表是由一个个结点链接而成，不同的链表之间的区别在与结点的不同。  
 声明单链表的类Node，代码如下：
+```java
+public class Node<T> {
+    /**数据域，保存数据元素*/
+    public T data;
+    /**地址域，引用后继结点,通过next链将两个结点链接起来*/
+    public Node<T> next;
 
+    public Node(T data, Node<T> next) {
+        this.data = data;
+        this.next = next;
+    }
+
+    public Node() {
+        this(null,null);
+    }
+}
+```
+``
+成员变量next的数据类型是Node类自己，这个类型称为“自引用的类”。是指一个类声明包含一个引用当前类的对象的成员变量。
+``
+#### 3.1.2 单链表的遍历操作
+遍历单链表是指从第一个结点开始，沿着结点的next链，依次访问单链表中的每个结点，并且每个结点只访问一次。
+```
+Node<T> node = head;
+while(node != null){
+    node = node.next;
+}
+```
+语句node = node.next是node移动到后继结点，此时结点间的链接关系没有改变。如果写为“node.next = node”，就变成node.next指向了自己，
+改变了链接关系，并且丢失了后继结点，遍历就变成死循环
+
+#### 3.1.3 单链表的插入操作
+对于单链表进行插入操作，只要改变结点间的链接关系，不需要移动数据元素。在单链表中插入一个结点，根据位置的不同分为：空表插入、头插入、中间插入、尾插入  
+1.空表插入\头插入
+```
+ head = new Node<T>(t,head);
+```
+空表插入也是头插入,当然也可以拆开来写：
+
+```
+if(head == null){
+    //空表插入
+    head = new Node<T>(t,null);
+}else{
+    //头插入
+    Node<T> node = new Node<T>(t,null);
+    node.next = head;
+}
+```
+2.中间插入\尾插入
+假设node指向了非空单链表中的某个结点，在node之后的插入q结点
+
+```
+    Node<T> node = new Node<T>(t,null);
+    q.next=node.next; //q的后继结点是node的原后继结点
+    node.next = q;//q作为node的新后继节点
+``` 
+若node指向最后一个结点，node.next == null,可以执行上述代码块。上面代码也可以精简为一句话：
+```
+p.next = new Node<T>(t,p.next);
+```
+#### 3.1.4 单链表的删除操作
+在单链表中删除指定结点，只要改变结点的next域就可以改变结点间的链接关系，不需要移动元素。根据结点的位置分为头删除、中间删除、尾删除
+1.头删除
+删除单链表第一个结点，只要使head指向其后继结点即可
+```
+head = head.next;
+```
+若单链表只有一个结点，则删除该结点后单链表为空表。
+#### 3.1.5 带结点的单链表
+带头结点的单链表是在单链表的第一个结点之前增加一个特殊结点，称为头结点。头结点的作用是使所有链表（包括空表）的头指针非空，
+并使对单链表的插入、删除操作不需要区分为空表或是否在第一个位置进行，从而与其他位置的插入、删除操作一致。
+```java
+public class SinglyLinkedList<T> implements LList<T> {
+
+    //头指针，指向单链表的头结点
+    public Node<T> head;
+
+    /**
+     * 重写默认无参构造，构造一个单链表，并带有头结点，data和next都为null
+     */
+    public SinglyLinkedList() {
+        head = new Node<T>();
+    }
+
+    /**
+     * 浅拷贝构造函数
+     * @param list
+     */
+    /*public SinglyLinkedList(SinglyLinkedList<T> list) {
+        head = list.head;
+    }*/
+
+    /**
+     * 深拷贝构造函数
+     * @param list
+     */
+    public SinglyLinkedList(SinglyLinkedList<T> list) {
+        this();
+        Node<T> node = list.head.next;
+        Node<T> rear = this.head;
+
+        while (node != null){
+            rear.next = new Node<T>(node.data,null);
+            rear = rear.next;
+            node = node.next;
+        }
+    }
+
+    /**
+     * 由指定数组中的多个对象构造单链表，采用尾插入构造单链表
+     * @param element 数据元素
+     */
+    public SinglyLinkedList(T[] element) {
+        this();
+        Node<T> rear = head;
+        for (int i = 0; i < element.length; i++) {
+            rear.next = new Node<T>(element[i],null);
+            rear = rear.next;
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return head.next == null;
+    }
+
+    @Override
+    public int size() {
+        int i = 0;
+        Node<T> node = head.next;
+        while (node != null){
+            i++;
+            node = node.next;
+        }
+        return i;
+    }
+
+    @Override
+    public T get(int index) {
+        if (index >= 0){
+            Node<T> node = head.next;
+            for (int i = 0; node != null && i<index; i++) {
+                node = node.next;
+            }
+            if (node != null){
+                return node.data;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void set(int index, T t) {
+        if (t == null){
+            return;
+        }
+        if (index >= 0){
+            Node<T> node = head.next;
+            for (int i = 0; node != null && i<index; i++) {
+                node = node.next;
+            }
+            if (node != null){
+                node.data = t;
+            }else{
+                throw new IndexOutOfBoundsException(index+"");
+            }
+        }
+    }
+
+    @Override
+    public void insert(int index, T t) {
+        if (t == null){
+            return;
+        }
+        Node<T> node = head;
+        for (int i=0;node.next!=null&&index<i;i++){
+            node = node.next;
+        }
+        node.next = new Node<T>(t,node.next);
+    }
+
+    @Override
+    public void add(T t) {
+        insert(Integer.MAX_VALUE,t);
+    }
+
+    @Override
+    public T remove(int i) {
+        if (i >= 0){
+            Node<T> node = head;
+            for (int j = 0; node.next != null && j<i ; j++) {
+                node = node.next;
+            }
+            if (node.next != null){
+                T old = node.data;
+                node.next = node.next.next;
+                return old;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void removeAll() {
+        head.next = null;
+    }
+
+    @Override
+    public T search(T key) {
+        ////在unit-10-search中实现
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        String string="(";
+        Node<T> node = this.head.next;
+        while (node != null) {
+            string += node.data.toString();
+            if (node.next != null){
+                string += ",";
+            }
+            node = node.next;
+        }
+
+        return string+")";
+    }
+}
+```
+#### 3.1.6 循环单链表
+ 循环单链表就是链表最后的一个结点的next链保存单链表的头指针head值，形成一个环形结构。
+ ![顺序表的插入与删除](../../../docs/img/java/dataStructure/sequence list.png)
+ 构造方法为：
+```java
+public class CirSinglyLinkedList<T> {
+    
+    public Node<T> head;
+    
+    public CirSinglyLinkedList(){
+        this.head = new Node<T>();
+        this.head.next = this.head;
+    }
+
+    public boolean isEmpty() {
+        return head.next == this.head;
+    }
+
+    @Override
+    public String toString() {
+        String string="(";
+        Node<T> node = this.head.next;
+        while (node != this.head) {
+            string += node.data.toString();
+            if (node.next != null){
+                string += ",";
+            }
+            node = node.next;
+        }
+
+        return string+")";
+    }
+    
+    //...其他方法参考同SinglyLinkedList.class
+}
+
+```
+###3.2双链表
+双链表的每个结点有两个地址域，分别指向它的前驱结点和后继节点，结构如下：
+ ![顺序表的插入与删除](../../../docs/img/java/dataStructure/sequence list.png)
+ 创建双链表基类：
+```java
+public class DLinkNode<T> {
+    public T data;
+    public DLinkNode<T> prev,next;
+
+    public DLinkNode(T data, DLinkNode<T> prev, DLinkNode<T> next) {
+        this.data = data;
+        this.prev = prev;
+        this.next = next;
+    }
+
+    public DLinkNode() {
+        this(null,null,null);
+    }
+}
+```
+双链表的插入和删除操作与单链表不同，其他均与单链表相似
+1.双链表的插入
+在双链表中插入一个结点，既可插入指定结点之前，也可以插入在指定结点之后。
+```
+//插入指定结点之前，假定在结点node之前插入值为x的q结点
+q = new DLinkNode<T>(x,node.prev,node);
+node.prev.next = q;
+node.prev = q;
+
+```
+```
+//插入指定结点之后，假定在结点node之后插入值为x的q结点
+q = new DLinkNode<T>(x,node,node.next);
+if(node.next != null){
+    //中间插入时执行
+    node.prev.next = q;
+}
+node.prev = q;
+```
+2.双链表的删除
+代码如下：
+```
+node.prev.next = node.next;
+if(node.next != null){
+    node.next.prev = node.prev;
+}
+```
+### 3.3循环双链表
+循环双链表是最后一个结点的next指向头结点，头结点的prev链指向最后一个结点。空双链表是后继结点指向自己的开始结点，开始结点指向自己的后继结点。
+代码如下：
+```java
+public class CirDoublyLinkedList<T> implements LList<T> {
+
+    public DLinkNode<T> head;
+
+    public CirDoublyLinkedList(DLinkNode<T> head) {
+        this.head = new DLinkNode<T>();
+        this.head.prev = head;
+        this.head.next = head;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return head.next == null;
+    }
+
+    @Override
+    public int size() {
+        int i = 0;
+        DLinkNode<T> node = head.next;
+        while (node != null){
+            i++;
+            node = node.next;
+        }
+        return i;
+    }
+
+    @Override
+    public T get(int index) {
+        if (index >= 0){
+            DLinkNode<T> node = head.next;
+            for (int i = 0; node != null && i<index; i++) {
+                node = node.next;
+            }
+            if (node != null){
+                return node.data;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void set(int index, T t) {
+        if (t == null){
+            return;
+        }
+        if (index >= 0){
+            DLinkNode<T> node = head.next;
+            for (int i = 0; node != null && i<index; i++) {
+                node = node.next;
+            }
+            if (node != null){
+                node.data = t;
+            }else{
+                throw new IndexOutOfBoundsException(index+"");
+            }
+        }
+    }
+
+    /**
+     * 将对象t插入在序号为index结点上
+     * 时间复杂度为O(n)
+     * @param index 结点
+     * @param t 对象
+     */
+    @Override
+    public void insert(int index, T t) {
+        //不能插入空对象
+        if (t == null){
+            return;
+        }
+        //寻找插入位置，当循环停止时，node指向index-1结点上
+        DLinkNode<T> node = this.head;
+        for (int i = 0;node.next != this.head && i<index;i++){
+            node = node.next;
+        }
+        //插入在node结点上
+        DLinkNode<T> linkNode = new DLinkNode<T>(t,node,node.next);
+        node.next.prev = linkNode;
+        node.next = linkNode;
+    }
+
+    /**
+     * 在循环双链表最后添加结点
+     * 时间复杂度为O(n)
+     * @param t 对象
+     */
+    @Override
+    public void add(T t) {
+        if (t == null){
+            return;
+        }
+        //使用尾插法，插入在头结点之前
+        DLinkNode<T> linkNode = new DLinkNode<T>(t,head.prev,head);
+        head.next.prev = linkNode;
+        head.next = linkNode;
+    }
+
+    /**
+     * 删除序号为i的结点
+     * @param i
+     * @return
+     */
+    @Override
+    public T remove(int i) {
+        if (i >= 0){
+            DLinkNode<T> node = this.head.next;
+            //定位到待删除的结点
+            for (int j = 0;node != head&&j<i;j++){
+                node = node.next;
+            }
+
+            if (node != head){
+                //获得原对象
+                T old = node.data;
+                node.prev.next = node.next;
+                //删除序号为i的结点
+                node.next.prev = node.prev;
+                return old;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void removeAll() {
+        this.head.prev = head;
+        this.head.next = head;
+    }
+
+    @Override
+    public T search(T key) {
+        //在unit-10-search中实现
+        return null;
+    }
+}
+
+```
+源码位置：https://github.com/Chenide/JavaNotes
