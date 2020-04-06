@@ -68,9 +68,9 @@ public class SinglyLinkedList<T> implements LList<T>
 ### 2.1 线性表的顺序存储结构
 线性表的顺序存储是用一组连续的内存单元依次存放线性表的数据元素，元素在内存的物理存储次序与它们在线性表中的逻辑相同，这种方式被称为**顺序表(sequence list)**。
 
-线性表的数据元素a*i*的存储地址是它在线性表中位置*i*的线性函数。如图所示：
+线性表的数据元素a<sub>i</sub>的存储地址是它在线性表中位置*i*的线性函数。如图所示：
 
-![线性表的顺序存储结构](../../../docs/img/java/dataStructure/sequence list.png)
+![线性表的顺序存储结构](../../../docs/img/java/dataStructure/线性表存储结构.png)
 
 顺序表通常采用数组存储数据元素。将线性表的数据元素顺序存放在数组中，数组元素在数组总的物理顺序与线性表中元素的顺序关系相同。
 数组是顺序存储随机存取结构，占用一组连续的存储单元，通过下标(序号)识别元素，元素地址是下标的线性函数。一个下标能够唯一确定一个元素，存取任何一个元素所花费的时间是***O(1)***。
@@ -135,11 +135,10 @@ public class SequentialList<T> implements LList<T> {
 ```
 
 ###2.3 顺序表的插入与删除
-顺序表的插入和删除操作要移动数据元素。元素移动过程如图所示：
+顺序表的插入和删除操作要移动数据元素。
 
-![顺序表的插入与删除](../../../docs/img/java/dataStructure/sequence list.png)
-
-插入元素时如果数组已满，则不能插入，会报数据溢出异常(IndexOutOfBoundsException)。解决数据溢出的办法是，将这个数组扩容。而jdk实现的方式是申请一个更大的数组并复制全部数组元素，这样就扩充了顺序表的容量。
+插入元素时如果数组已满，则不能插入，会报数据溢出异常(IndexOutOfBoundsException)。解决数据溢出的办法是，将这个数组扩容。
+而jdk实现的方式是申请一个更大的数组并复制全部数组元素，这样就扩充了顺序表的容量。
 ```java
 public class SequentialList<T> implements LList<T> {
     //时间复杂度为O(n)
@@ -221,10 +220,11 @@ public class SequentialList<T> implements LList<T> {
     }
 }
 ```
-在Java中数据类型是基本类型时，浅拷贝能够实现对象复制功能，数组和类是引用类型，两个数组/对象之间的赋值是引用赋值，数组赋值过程中没有申请新的存储空间，对象赋值过程中没有创建新的实例。因此当成员变量的数据类型是引用类型时，浅拷贝只复制了对象引用，
-并没有真正实现对象复制功能。
+在Java中数据类型是基本类型时，浅拷贝能够实现对象复制功能，数组和类是引用类型，两个数组/对象之间的赋值是引用赋值，数组赋值过程中没有申请新的存储空间，
+对象赋值过程中没有创建新的实例。因此当成员变量的数据类型是引用类型时，浅拷贝只复制了对象引用，并没有真正实现对象复制功能。
 
-- [顺序表的深拷贝](#顺序表的深拷贝)：一个类包含引用类型的成员变量时，该类声明的拷贝构造函数，不仅复制对象的所有基本类型成员变量值，还重新申请引用类型变量占用的动态存储空间，并复制其中所有对象。
+- [顺序表的深拷贝](#顺序表的深拷贝)：一个类包含引用类型的成员变量时，该类声明的拷贝构造函数，不仅复制对象的所有基本类型成员变量值，
+还重新申请引用类型变量占用的动态存储空间，并复制其中所有对象。
 如SequentialList类的深拷贝构造方法：
 ```java
 public class SequentialList<T> implements LList<T> {
@@ -280,7 +280,8 @@ public class Josephus {
 线性表的链式存储是用若干地址分散的存储单元存储数据元素，逻辑上相邻的数据元素在物理位置不一定相邻。
 存储一个数据元素的存储单元至少包含两个部分——数据域和地址域，数据域中存储的是数据元素值，地址域存储的是后继元素的地址。
 ###3.1 单链表
-单链表是由一个个结点链接而成
+单链表是由一个个结点链接而成，如图：
+![单链表结构图](../../../docs/img/java/dataStructure/单链表结构图.png)
 #### 3.1.1 单链表的结点
 单链表是由一个个结点链接而成，不同的链表之间的区别在与结点的不同。  
 声明单链表的类Node，代码如下：
@@ -516,7 +517,7 @@ public class SinglyLinkedList<T> implements LList<T> {
 ```
 #### 3.1.6 循环单链表
  循环单链表就是链表最后的一个结点的next链保存单链表的头指针head值，形成一个环形结构。
- ![顺序表的插入与删除](../../../docs/img/java/dataStructure/sequence list.png)
+![循环单链表结构图](../../../docs/img/java/dataStructure/循环单链表.png)
  构造方法为：
 ```java
 public class CirSinglyLinkedList<T> {
@@ -553,7 +554,7 @@ public class CirSinglyLinkedList<T> {
 ```
 ###3.2双链表
 双链表的每个结点有两个地址域，分别指向它的前驱结点和后继节点，结构如下：
- ![顺序表的插入与删除](../../../docs/img/java/dataStructure/sequence list.png)
+ ![双链表结构图](../../../docs/img/java/dataStructure/双链表结构图.png)
  创建双链表基类：
 ```java
 public class DLinkNode<T> {
@@ -600,6 +601,7 @@ if(node.next != null){
 ```
 ### 3.3循环双链表
 循环双链表是最后一个结点的next指向头结点，头结点的prev链指向最后一个结点。空双链表是后继结点指向自己的开始结点，开始结点指向自己的后继结点。
+![循环双链表结构图](../../../docs/img/java/dataStructure/循环双链表.png)
 代码如下：
 ```java
 public class CirDoublyLinkedList<T> implements LList<T> {
