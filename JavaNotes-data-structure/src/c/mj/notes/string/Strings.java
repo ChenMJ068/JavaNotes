@@ -149,14 +149,38 @@ public final class Strings implements Comparable<Strings> , Serializable {
         return -1;
     }
 
-    public static int indexOf(String target,Strings pattern,int begin){
+
+    /**
+     * 基于KMP算法实现
+     * @param target 目标串
+     * @param pattern 模式串
+     * @param begin 起始位置
+     * @return 返回匹配到的字符串位置
+     */
+    public static int indexOfByKMP(String target,String pattern,int begin){
         if (target != null && pattern != null && pattern.length()>0 && target.length() >= pattern.length()){
             int i = begin,j=0;
-
+            int[] next = getNext(pattern);
+            while (i<target.length()){
+                if (j == -1 || target.charAt(i) == pattern.charAt(j)){
+                    i++;
+                    j++;
+                }else{
+                    j = next[j];
+                }
+                if (j == pattern.length()){
+                    return i-j;
+                }
+            }
         }
         return -1;
     }
 
+    /**
+     * kmp算法核心实现，求next数组
+     * @param pattern 模板串
+     * @return next数组
+     */
     private static int[] getNext(String pattern){
         int j = 0,k = -1;
         int[] next = new int[pattern.length()];
@@ -165,7 +189,11 @@ public final class Strings implements Comparable<Strings> , Serializable {
             if (k == -1 || pattern.charAt(j) == pattern.charAt(k)){
                 j++;
                 k++;
-                next[j] = k;
+                if (pattern.charAt(j) != pattern.charAt(k)){
+                    next[j] = k;
+                }else {
+                    next[j] = next[k];
+                }
             }else{
                 k = next[k];
             }

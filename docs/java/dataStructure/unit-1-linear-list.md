@@ -55,11 +55,11 @@ public interface LList<T> {
 }
 ```
 由于线性表可以采用顺序存储和链式存储结构表示，在创建两个实现类：
-```
+```java
 //顺序存储
 public class SequenceList<T> implements LList<T> 
 ```
-```
+```java
 //链式存储结构
 public class SinglyLinkedList<T> implements LList<T> 
 ```
@@ -307,7 +307,7 @@ public class Node<T> {
 ``
 #### 3.1.2 单链表的遍历操作
 遍历单链表是指从第一个结点开始，沿着结点的next链，依次访问单链表中的每个结点，并且每个结点只访问一次。
-```
+```java
 Node<T> node = head;
 while(node != null){
     node = node.next;
@@ -319,12 +319,12 @@ while(node != null){
 #### 3.1.3 单链表的插入操作
 对于单链表进行插入操作，只要改变结点间的链接关系，不需要移动数据元素。在单链表中插入一个结点，根据位置的不同分为：空表插入、头插入、中间插入、尾插入  
 1.空表插入\头插入
-```
+```java
  head = new Node<T>(t,head);
 ```
 空表插入也是头插入,当然也可以拆开来写：
 
-```
+```java
 if(head == null){
     //空表插入
     head = new Node<T>(t,null);
@@ -337,20 +337,20 @@ if(head == null){
 2.中间插入\尾插入
 假设node指向了非空单链表中的某个结点，在node之后的插入q结点
 
-```
+```java
     Node<T> node = new Node<T>(t,null);
     q.next=node.next; //q的后继结点是node的原后继结点
     node.next = q;//q作为node的新后继节点
-``` 
-若node指向最后一个结点，node.next == null,可以执行上述代码块。上面代码也可以精简为一句话：
 ```
+若node指向最后一个结点，node.next == null,可以执行上述代码块。上面代码也可以精简为一句话：
+```java
 p.next = new Node<T>(t,p.next);
 ```
 #### 3.1.4 单链表的删除操作
 在单链表中删除指定结点，只要改变结点的next域就可以改变结点间的链接关系，不需要移动元素。根据结点的位置分为头删除、中间删除、尾删除
 1.头删除
 删除单链表第一个结点，只要使head指向其后继结点即可
-```
+```java
 head = head.next;
 ```
 若单链表只有一个结点，则删除该结点后单链表为空表。
@@ -575,14 +575,14 @@ public class DLinkNode<T> {
 双链表的插入和删除操作与单链表不同，其他均与单链表相似
 1.双链表的插入
 在双链表中插入一个结点，既可插入指定结点之前，也可以插入在指定结点之后。
-```
+```java
 //插入指定结点之前，假定在结点node之前插入值为x的q结点
 q = new DLinkNode<T>(x,node.prev,node);
 node.prev.next = q;
 node.prev = q;
 
 ```
-```
+```java
 //插入指定结点之后，假定在结点node之后插入值为x的q结点
 q = new DLinkNode<T>(x,node,node.next);
 if(node.next != null){
@@ -593,7 +593,7 @@ node.prev = q;
 ```
 2.双链表的删除
 代码如下：
-```
+```java
 node.prev.next = node.next;
 if(node.next != null){
     node.next.prev = node.prev;

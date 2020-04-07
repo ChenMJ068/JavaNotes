@@ -200,7 +200,12 @@ KMP算法是一种无回溯的模式匹配算法，改进了Brute-Force算法，
 ![KMP算法匹配描述](../../../docs/img/java/dataStructure/KMP算法匹配描述.png)
 
 #### 2.2.3 KMP算法之求next数组
-采用逐个比较前后缀子字符串的算法的方式称为穷举法也可以说为蛮力法，效率低下。
+next数组的值是代表着模式字符串的前缀与后缀相同的最大长度，next[j]值定义为:  
+$$
+next[j]=\begin{cases}-1&当j=0时\\k&当0<=k<j时且使"p_0…p_{k-1}"="p_{j-k}…p_{j-1}"\end{cases}\
+$$
+
+
 
 KMP算法充分利用前一次匹配的比较结果，由next[j]值逐个递推计算得到next[j+1]。  
 1.约定next[0] = -1，-1表示下次匹配从t<sub>i+1</sub>与p<sub>0</sub>开始比较；有next[1] = 0。  
@@ -224,15 +229,72 @@ public class Strings{
             if (k == -1 || pattern.charAt(j) == pattern.charAt(k)){
                 j++;
                 k++;
-                next[j] = k;
+                next[j] = k; //有待改进
             }else{
-                k = next[k];
+                k = next[k]; 
             }
         }
         return next;
     }
 }
 ```
-#### 2.2.4 KMP算法实现
+上面KMP算法描述中，当t<sub>i</sub>!=p<sub>j</sub>时，下次匹配模式串从p<sub>k=next[j]</sub>开始比较。此时，p<sub>k</sub>=p<sub>j</sub>，可知t<sub>i</sub>!=p<sub>k</sub>,
+则下次匹配模式串从p<sub>next[k]</sub>开始比较。显然next[k]<next[j],next[j]越小，模式串向右移动的距离越远，比较次数也就越少。
 
+所以，要改就求next数据，减少一些不必要的比较。假设next[j] = k,若p<sub>k</sub>=p<sub>j</sub>,则next[k]=next[j]。代码改动如下：
+```java
+public class Strings{
+
+    private static int[] getNext(String pattern){
+            int j = 0,k = -1;
+            int[] next = new int[pattern.length()];
+            next[0] = -1;
+            while (j<pattern.length()-1){
+                if (k == -1 || pattern.charAt(j) == pattern.charAt(k)){
+                    j++;
+                    k++;
+                    //改进之后
+                    if (pattern.charAt(j) != pattern.charAt(k)){
+                        next[j] = k;
+                    }else {
+                        next[j] = next[k];
+                    }
+                }else{
+                    k = next[k];
+                }
+            }
+            return next;
+    }
+}
+```
+#### 2.2.4 KMP算法实现
+```java
+public class Strings{
+    public static int indexOfByKMP(String target,String pattern,int begin){
+            if (target != null && pattern != null && pattern.length()>0 && target.length() >= pattern.length()){
+                int i = begin,j=0;
+                int[] next = getNext(pattern);
+                while (i<target.length()){
+                    if (j == -1 || target.charAt(i) == pattern.charAt(j)){
+                        i++;
+                        j++;
+                    }else{
+                        j = next[j];
+                    }
+                    if (j == pattern.length()){
+                        return i-j;
+                    }
+                }
+            }
+            return -1;
+        }
+}
+```
 #### 2.2.5 KMP算法分析
+kmp算法的最多比较次数为目标串的长度n与模式串的长度m之和，所以时间复杂度为O(n).
+
+
+参考博文:  
+[KMP的next数组求法详解](https://blog.csdn.net/yutong5818/article/details/81319120)
+[KMP 算法详解](https://zhuanlan.zhihu.com/p/83334559)
+[史上最简(详细)KMP算法讲解，看不懂算我输](https://www.sohu.com/a/336648975_453160)
