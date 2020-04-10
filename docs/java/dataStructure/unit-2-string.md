@@ -80,7 +80,7 @@ Brute-Force算法每次匹配将从目标中从*t<sub>i</sub>(0<=i<=n-m)* 开始
 如果相等则匹配成功，i即是模式串在目标中的匹配序号；否则一次匹配失败，继续比较目标串的下一个子串"t<sub>i+1</sub>t<sub>i+2</sub>...t<sub>i+m</sub>"，
 如果匹配失败依次类推，每次都匹配模式串长度m个字符。即目标串中所有长度为m的子串都与模式串匹配过，这样保证不丢失任何匹配的可能。
 
-![Brute-Force算法匹配描述](../../../docs/img/java/dataStructure/Brute-Force算法匹配描述.png)
+![Brute-Force算法匹配描述](../../../docs/img/java/dataStructure/brute-Force算法描述.png)
 
 在Strings.calss增加代码实现：
 ```java
@@ -171,7 +171,7 @@ public class Strings{
 
 ```
 
-#### 2.1.3x分析
+#### 2.1.3 Brute-Force算法分析
 从Strings.class的indexOf()方法上看，这个方法简单，但是时间效率不高。模式匹配操作花费的时间主要用于比较字符。
 最好的情况下，第一次匹配成功，模板字符串刚好与目标字符串的"t<sub>0</sub>t<sub>1</sub>……t<sub>m-1</sub>"子串匹配成功。
 此时模板字符串的长度m，时间复杂度为O(m)。最坏情况下，从头到尾一次都匹配不上，每次都比较了模板字符串的m次，所以时间复杂度为O(m*n)。
@@ -180,9 +180,9 @@ public class Strings{
 Brute-Force算法目标字符串存在回溯，两个字符串逐个比较字符，若t<sub>i</sub> != p<sub>j</sub>(0<=i<n,0<=j<m),则下次匹配目标字符串回退
 从t<sub>i-j+1</sub>开始与模式串p<sub>0</sub>比较。但是，目标字符串的回溯是不必要的，t<sub>i-j+1</sub>与p<sub>0</sub>的比较结果可由前一次匹配结果得到。
 #### 2.2.2 KMP算法描述
-KMP算法是一种无回溯的模式匹配算法，改进了Brute-Force算法，改进之处主要体现在以下两点：
-1.目标串不回溯。一旦比较不等，t<sub>i</sub>!=p<sub>j</sub>,下次匹配目标串继续从t<sub>i</sub>开始比较；
-2.模式串每次匹配重p<sub>k</sub>(0<=k<j)开始比较,对于每个p<sub>j</sub>，k的取值不同。因此，如何求得这个k，就是KMP算法的核心内容。
+KMP算法是一种无回溯的模式匹配算法，改进了Brute-Force算法，改进之处主要体现在以下两点：  
+1.目标串不回溯。一旦比较不等，t<sub>i</sub>!=p<sub>j</sub>,下次匹配目标串继续从t<sub>i</sub>开始比较；  
+2.模式串每次匹配从p<sub>k</sub>(0<=k<j)开始比较,对于每个p<sub>j</sub>，k的取值不同。因此，如何求得这个k，就是KMP算法的核心内容。
 
 设目标串target="abdabcabbaabc",模式串pattern="abcd",其中n=target.length(),m=pattern.length(),0<m<=n,0<=i<n,0<=j<m,0<=k<j。
 目标串target下标为"t<sub>0</sub>t<sub>1</sub>…t<sub>n-1</sub>",模式串pattern下标为"p<sub>0</sub>p<sub>1</sub>…p<sub>m-1</sub>"。  
@@ -197,7 +197,7 @@ KMP算法是一种无回溯的模式匹配算法，改进了Brute-Force算法，
 则接着模式串只需从p<sub>k</sub>开始继续与t<sub>i</sub>比较。
 到此，问题转化为对模式串中每一个字符p<sub>j</sub>,找出p<sub>0</sub>p<sub>1</sub>…p<sub>j-1</sub>"串中相同的最长前缀子串和后缀子串的长度k，k取值只与模式串有关，与目标串无关。
 
-![KMP算法匹配描述](../../../docs/img/java/dataStructure/KMP算法匹配描述.png)
+![KMP算法匹配描述](../../../docs/img/java/dataStructure/kmp算法描述.png)
 
 #### 2.2.3 KMP算法之求next数组
 next数组的值是代表着模式字符串的前缀与后缀相同的最大长度，next[j]值定义为:  
@@ -295,6 +295,6 @@ kmp算法的最多比较次数为目标串的长度n与模式串的长度m之和
 
 
 参考博文:  
-[KMP的next数组求法详解](https://blog.csdn.net/yutong5818/article/details/81319120)
-[KMP 算法详解](https://zhuanlan.zhihu.com/p/83334559)
-[史上最简(详细)KMP算法讲解，看不懂算我输](https://www.sohu.com/a/336648975_453160)
+[KMP的next数组求法详解](https://blog.csdn.net/yutong5818/article/details/81319120)  
+[KMP 算法详解](https://zhuanlan.zhihu.com/p/83334559)  
+[字符串匹配的KMP算法](http://www.ruanyifeng.com/blog/2013/05/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm.html)
