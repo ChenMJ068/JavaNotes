@@ -43,6 +43,7 @@ public class SeqQueue<T> implements QQueue<T> {
         if ( t == null){
             return;
         }
+        //扩容顺序循环队列条件
         if (this.front == (this.rear+1) % this.element.length){
             Object[] tmp = this.element;
             this.element = new Object[tmp.length*2];
