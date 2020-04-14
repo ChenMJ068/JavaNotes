@@ -136,11 +136,29 @@ public class SequentialList<T> implements LList<T> {
 
     @Override
     public T search(T key) {
-        //在unit-10-search中实现
-        return null;
+        int find = this.indexOf(key);
+        return find == -1?null: (T) this.element[find];
     }
 
+    /**
+     * 顺序表查找 关键字为key，返回首次出现的元素，找不到就返回-1
+     * @param key 检索关键字
+     * @return 首次出现下标
+     */
+    public int indexOf(T key){
+        if (key != null){
+            for (int i = 0; i < this.len; i++) {
+                if(this.element[i].equals(key)){
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
 
+    public boolean contain(T key){
+        return this.indexOf(key) >= 0;
+    }
 
     @Override
     public boolean equals(Object obj) {

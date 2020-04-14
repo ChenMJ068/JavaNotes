@@ -2,6 +2,7 @@ package c.mj.notes.linear.impl;
 
 import c.mj.notes.linear.LList;
 import c.mj.notes.linear.Node;
+import com.sun.org.apache.xpath.internal.objects.XNodeSet;
 
 /**
  * 单链表,带头结点
@@ -145,8 +146,20 @@ public class SinglyLinkedList<T> implements LList<T> {
 
     @Override
     public T search(T key) {
-        ////在unit-10-search中实现
+        if (key == null){
+            return null;
+        }
+        Node<T> node = this.head.next;
+        while(node != null){
+            if (node.data.equals(key)){
+                return node.data;
+            }
+            node = node.next;
+        }
         return null;
+    }
+    public boolean contain(T key){
+        return this.search(key) != null;
     }
 
     @Override
