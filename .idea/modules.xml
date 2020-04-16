@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/JavaNotes.iml" filepath="$PROJECT_DIR$/.idea/JavaNotes.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-codes.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-codes.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-data-structure/JavaNotes-data-structure.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-data-structure/JavaNotes-data-structure.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/JavaNotes-design-pattern.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/JavaNotes-design-pattern.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/JavaNotes-java-core.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/JavaNotes-java-core.iml" />
     </modules>
   </component>

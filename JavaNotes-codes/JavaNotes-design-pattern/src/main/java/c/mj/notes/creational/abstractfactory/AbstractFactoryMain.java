@@ -1,4 +1,4 @@
-package c.mj.notes.creational.abstractfactory.example;
+package c.mj.notes.creational.abstractfactory;
 
 import c.mj.notes.creational.factory.example.Shape;
 
@@ -6,7 +6,7 @@ import c.mj.notes.creational.factory.example.Shape;
  * @author ChenMJ
  * @version AbstractFactoryMain.class, v 0.1 2020/4/15 17:39  Exp$
  */
-public class AbstractFactoryMain extends FactoryProducer {
+public class AbstractFactoryMain  {
     public static void main(String[] args) {
 
         //获取形状工厂

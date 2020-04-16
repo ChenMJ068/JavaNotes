@@ -1,8 +1,9 @@
-package c.mj.notes.creational.abstractfactory.example;
+package c.mj.notes.creational.abstractfactory;
 
-import c.mj.notes.creational.abstractfactory.example.impl.Blue;
-import c.mj.notes.creational.abstractfactory.example.impl.Green;
-import c.mj.notes.creational.abstractfactory.example.impl.Red;
+
+import c.mj.notes.creational.abstractfactory.impl.Blue;
+import c.mj.notes.creational.abstractfactory.impl.Green;
+import c.mj.notes.creational.abstractfactory.impl.Red;
 import c.mj.notes.creational.factory.example.Shape;
 
 /**

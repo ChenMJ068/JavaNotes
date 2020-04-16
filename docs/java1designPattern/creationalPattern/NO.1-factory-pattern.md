@@ -139,4 +139,6 @@ Square production::make() method.
 ##延伸
 Spring中的工厂模式BeanFactory
 
+源码地址：[设计模式源码](https://github.com/Chenide/JavaNotes)
+
 本文部分内容借鉴于https://design-patterns.readthedocs.io/zh_CN/latest/creational_patterns/factory_method.html#id5

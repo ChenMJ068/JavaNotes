@@ -1,4 +1,4 @@
-package c.mj.notes.creational.abstractfactory.example;
+package c.mj.notes.creational.abstractfactory;
 
 import c.mj.notes.creational.factory.example.Shape;
 import c.mj.notes.creational.factory.example.ShapeFactory;

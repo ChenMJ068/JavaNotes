@@ -1,6 +1,6 @@
-package c.mj.notes.creational.abstractfactory.example.impl;
+package c.mj.notes.creational.abstractfactory.impl;
 
-import c.mj.notes.creational.abstractfactory.example.Color;
+import c.mj.notes.creational.abstractfactory.Color;
 
 /**
  * @author ChenMJ

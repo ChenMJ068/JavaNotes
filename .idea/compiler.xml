@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
+    <option name="USE_RELEASE_OPTION" value="false" />
     <annotationProcessing>
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="JavaNotes-design-pattern" />
         <module name="JavaNotes-java-core" />
         <module name="JavaNotes-data-structure" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="JavaNotes" target="1.5" />
-      <module name="JavaNotes-codes" target="1.5" />
-      <module name="JavaNotes-data-structure" target="1.5" />
-      <module name="JavaNotes-design-pattern" target="1.5" />
-      <module name="JavaNotes-java-core" target="1.5" />
-      <module name="JavaNotes-spring" target="1.5" />
+    <bytecodeTargetLevel target="8">
+      <module name="JavaNotes" target="8" />
+      <module name="JavaNotes-codes" target="8" />
+      <module name="JavaNotes-data-structure" target="8" />
+      <module name="JavaNotes-design-pattern" target="8" />
+      <module name="JavaNotes-java-core" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>

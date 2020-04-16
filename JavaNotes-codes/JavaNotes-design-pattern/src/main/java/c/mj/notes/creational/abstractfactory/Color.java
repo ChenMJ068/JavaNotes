@@ -1,4 +1,4 @@
-package c.mj.notes.creational.abstractfactory.example;
+package c.mj.notes.creational.abstractfactory;
 
 /**
  * @author ChenMJ
