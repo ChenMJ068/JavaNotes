@@ -46,21 +46,21 @@ JavaNotes是自己学习(面试)时总结的面试知识点，编程这个行业
 
 ## 数据结构与算法
 ### java数据结构
-- [走进java数据结构](docs/java/dataStructure/approach-the-Java-data-structure.md)
-- [线性表](docs/java/dataStructure/unit-1-linear-list.md)
-- [串](docs/java/dataStructure/unit-2-string.md)
-- [栈](docs/java/dataStructure/unit-3-stack.md)
-- [队列](docs/java/dataStructure/unit-4-queue.md)
-- [树](docs/java/dataStructure/unit-5-trees.md)
-- [图](docs/java/dataStructure/unit-6-graph.md)
-- [查找](docs/java/dataStructure/unit-7-search.md)
-- [排序](docs/java/dataStructure/unit-8-sorting.md)
+- [走进java数据结构](docs/NO.1_java/dataStructure/approach-the-Java-data-structure.md)
+- [线性表](docs/NO.1_java/dataStructure/unit-1-linear-list.md)
+- [串](docs/NO.1_java/dataStructure/unit-2-string.md)
+- [栈](docs/NO.1_java/dataStructure/unit-3-stack.md)
+- [队列](docs/NO.1_java/dataStructure/unit-4-queue.md)
+- [树](docs/NO.1_java/dataStructure/unit-5-trees.md)
+- [图](docs/NO.1_java/dataStructure/unit-6-graph.md)
+- [查找](docs/NO.1_java/dataStructure/unit-7-search.md)
+- [排序](docs/NO.1_java/dataStructure/unit-8-sorting.md)
 
 ### 算法
 **待办**
 
 ## 设计模式
-- [设计模式](docs/java1designPattern/design-pattern.md)
+- [设计模式](docs/NO.2_designPattern/design-pattern.md)
 ## 网络
 **待办**
 ## 数据库

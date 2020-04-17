@@ -10,12 +10,8 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-data-structure/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/pom.xml" />
-      </list>
-    </option>
-    <option name="ignoredFiles">
-      <set>
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/pom.xml" />
-      </set>
+      </list>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK">

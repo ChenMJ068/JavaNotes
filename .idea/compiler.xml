@@ -13,11 +13,11 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="8">
-      <module name="JavaNotes" target="8" />
-      <module name="JavaNotes-codes" target="8" />
-      <module name="JavaNotes-data-structure" target="8" />
-      <module name="JavaNotes-design-pattern" target="8" />
-      <module name="JavaNotes-java-core" target="8" />
+      <module name="JavaNotes" target="1.8" />
+      <module name="JavaNotes-codes" target="1.8" />
+      <module name="JavaNotes-data-structure" target="1.8" />
+      <module name="JavaNotes-design-pattern" target="1.8" />
+      <module name="JavaNotes-java-core" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
