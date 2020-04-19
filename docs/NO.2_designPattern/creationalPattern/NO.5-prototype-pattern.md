@@ -150,3 +150,5 @@ Shape : Circle
 Shape : Square
 Shape : Rectangle
 ```
+
+源码地址：[设计模式源码](https://github.com/Chenide/JavaNotes)
