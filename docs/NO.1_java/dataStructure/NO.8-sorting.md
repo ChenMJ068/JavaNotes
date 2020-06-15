@@ -379,3 +379,4 @@ public class ArraySort {
 非递归的迭代方法，避免了递归时深度为log2n的栈空间，因此空间复杂度为O(n).并且避免递归在时间性能上有一定的提升
 （函数调用的开销）。所以，使用归并排序时，尽量考虑使用非递归方法。
 
+链接：[文档地址](https://github.com/Chenide/JavaNotes) [源码地址](https://github.com/Chenide/core-structure-aglo)

@@ -152,3 +152,4 @@ public class LinkedStack<T> implements SStack<T> {
 ###4.2 使用栈以非递归方式实现递归算法
 在程序中出现的表达式，其定义是递归的，求值也有递归算法。通过一个表达式（1+2）*3+4来展示jvm是怎么将表达式编译成能够正确求值的指令。
 
+链接：[文档地址](https://github.com/Chenide/JavaNotes) [源码地址](https://github.com/Chenide/core-structure-aglo)

@@ -309,3 +309,6 @@ public class PrimeRing {
 ```
 素数环：(1,2,3,4,7,10,9,8,5,6)
 ```
+
+
+链接：[文档地址](https://github.com/Chenide/JavaNotes) [源码地址](https://github.com/Chenide/core-structure-aglo)

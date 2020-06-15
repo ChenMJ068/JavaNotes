@@ -16,6 +16,8 @@
         <module>JavaNotes-java-core</module>
         <module>JavaNotes-design-pattern</module>
         <module>JavaNotes-design-pattern</module>
+        <module>JavaNotes-data-structure</module>
+        <module>JavaNotes-dubbo</module>
     </modules>
 
 

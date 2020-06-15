@@ -14,9 +14,9 @@ public interface LList<T> {
     /**返回第i个元素*/
     T get(int index);
     /**设置第i个元素为t*/
-    void set(int index,T t);
+    void set(int index, T t);
     /**插入t作为第i个元素*/
-    void insert(int index,T t);
+    void insert(int index, T t);
     /**在线性表最后插入t*/
     void add(T t);
     /**删除第i个元素*/

@@ -298,3 +298,5 @@ kmp算法的最多比较次数为目标串的长度n与模式串的长度m之和
 [KMP的next数组求法详解](https://blog.csdn.net/yutong5818/article/details/81319120)  
 [KMP 算法详解](https://zhuanlan.zhihu.com/p/83334559)  
 [字符串匹配的KMP算法](http://www.ruanyifeng.com/blog/2013/05/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm.html)
+
+链接：[文档地址](https://github.com/Chenide/JavaNotes) [源码地址](https://github.com/Chenide/core-structure-aglo)

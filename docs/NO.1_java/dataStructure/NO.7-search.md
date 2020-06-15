@@ -381,3 +381,4 @@ public class BinarySortTree {
 - 它的左子树和右子树都是平衡二叉树
 - 左子树与右子树的高度之差的绝对值不超过1
 
+链接：[文档地址](https://github.com/Chenide/JavaNotes) [源码地址](https://github.com/Chenide/core-structure-aglo)

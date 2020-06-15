@@ -7,9 +7,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="JavaNotes-design-pattern" />
         <module name="JavaNotes-java-core" />
+        <module name="notes-dubbo-server" />
+        <module name="JavaNotes-design-pattern" />
+        <module name="notes-dubbo-client" />
         <module name="JavaNotes-data-structure" />
+        <module name="JavaNotes-dubbo" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="8">
@@ -17,7 +20,16 @@
       <module name="JavaNotes-codes" target="1.8" />
       <module name="JavaNotes-data-structure" target="1.8" />
       <module name="JavaNotes-design-pattern" target="1.8" />
+      <module name="JavaNotes-dubbo" target="1.8" />
       <module name="JavaNotes-java-core" target="1.8" />
+      <module name="notes-dubbo-client" target="1.8" />
+      <module name="notes-dubbo-server" target="1.8" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="notes-dubbo-client" options="-parameters" />
+      <module name="notes-dubbo-server" options="-parameters" />
+    </option>
   </component>
 </project>

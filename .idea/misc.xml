@@ -8,10 +8,16 @@
       <list>
         <option value="$PROJECT_DIR$/JavaNotes-design-pattern/pom.xml" />
         <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-data-structure/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/pom.xml" />
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-server/pom.xml" />
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-client/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbos/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK">
