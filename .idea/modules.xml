@@ -9,6 +9,7 @@
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/JavaNotes-dubbo.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/JavaNotes-dubbo.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/JavaNotes-java-core.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/JavaNotes-java-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-client/notes-dubbo-client.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-client/notes-dubbo-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-facade/notes-dubbo-facade.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-facade/notes-dubbo-facade.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-server/notes-dubbo-server.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-server/notes-dubbo-server.iml" />
     </modules>
   </component>

@@ -10,6 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>JavaNotes-dubbo</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>notes-dubbo-facade</module>
+        <module>notes-dubbo-server</module>
+        <module>notes-dubbo-client</module>
+    </modules>
 
 
 </project>
