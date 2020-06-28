@@ -22,10 +22,10 @@
 
 ReferenceBean类的内容非常丰富，逻辑也较为复杂，但抽丝剥茧后，最主要的功能有三个，如图所示，分别是配置初始化、服务订阅和创建
 代理对象。
-![ReferenceBean类功能](../../../docs/img/dubbo/ReferenceBean类功能.png)
+![ReferenceBean类功能](../../docs/img/dubbo/ReferenceBean类功能.png)
 
 ReferenceBean的实现原理：
-![ReferenceBean](../../../docs/img/dubbo/ReferenceBean.png)
+![ReferenceBean](../../docs/img/dubbo/ReferenceBean.png)
 
 从上图可以看到，ReferenceBean继承了ReferenceConfig类，实现了FactoryBean、InitializingBean、DisposableBean和
 ApplicationContextAware接口。FactoryBean接口主要是通过getObject方法返回对远程服务调用的代理类实现的。InitializingBean
@@ -293,7 +293,7 @@ public static boolean isRegistry(URL url) {
 (3).与注册中心进行交互，“watch”相应的节点:
 
 官网上的Dubbo与注册中心的结构图，
-![dubbo architecture](../../../docs/img/dubbo/dubbo architecture.png)
+![dubbo architecture](../../docs/img/dubbo/dubbo-architecture.PNG)
 
 从图中可以看出，服务提供者Provider向服务注册中心Registry注册服务，而消费者Consumer从服务注册中心订阅所需要的服务，但不是所有
 服务。当有新的Provider出现，或者现有的Provider宕机时，注册中Registry都会尽早发现，并将新的provider列表推送给对应的Consumer。
@@ -312,7 +312,7 @@ Dubbo支持多种注册中心，最常用的ZooKeeper。因为太多分布式的
 - [NotifyListener](#NotifyListener):负责RegistryDirectory与ZooKeeperRegistry的通信；
 - [FailbackRegistry](#FailbackRegistry):继承自Registry，实现了失败重试机制。
 
-![类的继承关系](../../../docs/img/dubbo/类的继承关系.png)
+![类的继承关系](../../docs/img/dubbo/类的继承关系.png)
 
 在RegistryProtocol类的refer方法中主要通过getRegistry方法获取ZooKeeperRegistry实例，并将ZooKeeperRegistry实例以参数的方式
 传入doRefer方法。代码如下：
@@ -547,7 +547,8 @@ public abstract class Proxy {
                     Class<?>[] pts = method.getParameterTypes();
                     
                     //生成代理方法体
-                    StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length).append("];");
+                    StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length)
+                        .append("];");
                     for (int j = 0; j < pts.length; j++) {
                         code.append(" args[").append(j).append("] = ($w)$").append(j + 1).append(";");
                     }
@@ -557,7 +558,8 @@ public abstract class Proxy {
                     }
 
                     methods.add(method);
-                    ccp.addMethod(method.getName(), method.getModifiers(), rt, pts, method.getExceptionTypes(), code.toString());
+                    ccp.addMethod(method.getName(), method.getModifiers(), rt, pts, 
+                    method.getExceptionTypes(), code.toString());
                 }
             }
 
@@ -574,7 +576,8 @@ public abstract class Proxy {
             //添加InvokerInvocationHandler属性
             ccp.addField("private " + InvocationHandler.class.getName() + " handler;");
             //添加构造方法，参数是InvokerInvocationHandler对象
-            ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{InvocationHandler.class}, new Class<?>[0], "handler=$1;");
+            ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{InvocationHandler.class}, new Class<?>[0], 
+            "handler=$1;");
             ccp.addDefaultConstructor();
             //生成代理类Class
             Class<?> clazz = ccp.toClass();
@@ -589,7 +592,8 @@ public abstract class Proxy {
             //设置父类是抽象类Proxy
             ccm.setSuperClass(Proxy.class);
             //生成新的方法，实例化代理实例对象并返回
-            ccm.addMethod("public Object newInstance(" + InvocationHandler.class.getName() + " h){ return new " + pcn + "($1); }");
+            ccm.addMethod("public Object newInstance(" + InvocationHandler.class.getName() 
+            + " h){ return new " + pcn + "($1); }");
             Class<?> pc = ccm.toClass();
             //实例化代理类对象
             proxy = (Proxy) pc.newInstance();
@@ -626,11 +630,456 @@ public abstract class Proxy {
 看一下InvokerInvocationHandler代理类的实现过程。
 
 ## 2.远程调用
+上面通过ReferenceBean的学习，了解了ReferenceBean将服务接口以代理的形式进行了包装。下面介绍如何通过代理进行远程方法的调用。从大
+的方面也可以分为三步，分别为代理调用、容错负载和远程通信。
+
+![远程调用](../../docs/img/dubbo/远程调用.png)
 
 ### 2.1代理调用
+在开篇中的Demo中服务的调用是这样实现的：
+```java
+DemoService demoservice = (DemoService) application.getBean("demoservice");
+DemoRequest demoRequest = new DemoRequest();
+demoRequest.setSayHello("dubbo");
+DemoResponse demoResponse = demoservice.demo(demoRequest);
+```
+通过Spring的getBean方法获取服务接口DemoService，然后设置请求参数数据，调用服务接口的demo方法，但demo方法已经被代理类
+InvokerInvocationHandler包装拦截。InvokerInvocationHandler代理类的代码如下：
+```java
+public class InvokerInvocationHandler implements InvocationHandler {
+    private static final Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
+    private final Invoker<?> invoker;
+    private ConsumerModel consumerModel;
+
+    public InvokerInvocationHandler(Invoker<?> handler) {
+        this.invoker = handler;
+        String serviceKey = invoker.getUrl().getServiceKey();
+        if (serviceKey != null) {
+            this.consumerModel = ApplicationModel.getConsumerModel(serviceKey);
+        }
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (method.getDeclaringClass() == Object.class) {
+            return method.invoke(invoker, args);
+        }
+        String methodName = method.getName();
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length == 0) {
+            //动态代理过滤toString方法
+            if ("toString".equals(methodName)) {
+                return invoker.toString();
+            } else if ("$destroy".equals(methodName)) {
+                invoker.destroy();
+                return null;
+                //动态代理过滤hashCode方法
+            } else if ("hashCode".equals(methodName)) {
+                return invoker.hashCode();
+            }
+            
+            //动态代理过滤equals方法
+        } else if (parameterTypes.length == 1 && "equals".equals(methodName)) {
+            return invoker.equals(args[0]);
+        }
+        RpcInvocation rpcInvocation = new RpcInvocation(method, invoker.getInterface().getName(), args);
+        String serviceKey = invoker.getUrl().getServiceKey();
+        rpcInvocation.setTargetServiceUniqueName(serviceKey);
+      
+        if (consumerModel != null) {
+            rpcInvocation.put(Constants.CONSUMER_MODEL, consumerModel);
+            rpcInvocation.put(Constants.METHOD_MODEL, consumerModel.getMethodModel(method));
+        }
+
+        //将方法和参数封装成为rpcInvocation后调用，recreate方法的主要作用是是在调用时
+        //如果发生异常则抛出异常，反之正常返回
+        return invoker.invoke(rpcInvocation).recreate();
+    }
+}
+```
+
+每一个动态代理类都必须实现InvocationHandler接口，并且每个代理类的实例都关联了一个Handler，当我们通过代理对象调用一个方法时，
+这个方法的调用就会转为InvocationHandler接口的invoke方法调用，Invoker实例就是我们之前讲过的MockClusterInvoker。
+```java
+public class MockClusterInvoker<T> implements Invoker<T> {
+    //......
+
+    @Override
+    public Result invoke(Invocation invocation) throws RpcException {
+        Result result = null;
+
+        //获取Mock状态值
+        String value = getUrl().getMethodParameter(invocation.getMethodName(), 
+        MOCK_KEY, Boolean.FALSE.toString()).trim();
+        //如果为False，则继续执行下去
+        if (value.length() == 0 || "false".equalsIgnoreCase(value)) {
+            //no mock
+            result = this.invoker.invoke(invocation);
+        } 
+        //如果为true，则判断value字符串是否以force开头，如果是则强制执行doMockInvoke方法
+        else if (value.startsWith("force")) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("force-mock: " + invocation.getMethodName() 
+                + " force-mock enabled , url : " + getUrl());
+            }
+            //如果值为force，表示强制mock，即不访问远端方法，直接调用mock数据
+            result = doMockInvoke(invocation, null);
+        } else {
+            //其他的值，则先调用后面的Invoker，如果失败且不是业务错误时使用Mock数据，非业务错误、
+            //超时错误、禁止访问错误、序列化错误及其他未知的错误，业务知识则是接口实现类中的方法抛出的错误
+            try {
+                result = this.invoker.invoke(invocation);
+
+                //fix:#4585
+                if(result.getException() != null && result.getException() instanceof RpcException){
+                    RpcException rpcException= (RpcException)result.getException();
+                    if(rpcException.isBiz()){
+                        throw  rpcException;
+                    }else {
+                        result = doMockInvoke(invocation, rpcException);
+                    }
+                }
+
+            } catch (RpcException e) {
+                if (e.isBiz()) {
+                    throw e;
+                }
+
+                if (logger.isWarnEnabled()) {
+                    logger.warn("fail-mock: " + invocation.getMethodName() 
+                    + " fail-mock enabled , url : " + getUrl(), e);
+                }
+                result = doMockInvoke(invocation, e);
+            }
+        }
+        return result;
+    }
+    
+    //......
+}
+```
+这段代码首先根据请求的URL获取Mock的value状态值，如果value值为false，则直接继续下一步；如果value值是以force开头的字符串，则
+强制执行doMockInvoker方法。这个方法不进行远程访问，可以自己定义本地Mock方法执行。如果Value值是mock=fail:return null,则可以
+放行继续执行；如果返回错误，则可以根据doMockInvoker方法进行功能降级。也就是说，这个类一共包括三个功能，分别是Mock挡板，功能
+降级和正常执行：
+
+(1).Mock挡板  
+以一个例子说一下Dubbo中mock的用法。
+```
+<dubbo:reference interface="c.mj.demo.DemoService" mock="force"/>
+```
+在reference标签中加上一个mock="force"就可以将当前服务设置为Mock。但是设置完Mock属性后还没有结束，需要有一个mock类对应服务
+接口类。
+
+规则如下：接口名+Mock后缀，服务接口调用失败Mock实现类，该Mock类必须有个无参构造函数。
+
+以DemoService为例创建DemoServiceMock类。
+```java
+public class DemoServiceMock implements DemoService{
+    public DemoResponse demo(DemoRequest request){
+        DemoResponse response = new DemoResponse();
+        //伪装容错数据
+        
+        return response;
+    }
+}
+```
+经过以上设置后，当调用DemoService进行接口调用时，请求将直接到DemoServiceMock实例中进行相关的数据模拟。
+
+(2).功能降级  
+这一个名称最简单的解释就是“弃卒保帅”，而降级的目的就是停止一些非核心的系统以保护系统的核心功能能够正常使用。在DUbbo中，降级一词
+还有另一层含义，因网络、超时等异常上时间出现后，Dubbo通过正常的通信协议无法正常工作，则可以考虑采用其他的通信方式，比如Hessian
+或HTTP的方式，一些非关键和实时的诗句也可以调用本地缓存的数据返回。
 
 ### 2.2容错负载
 
+#### 2.2.1 整体架构介绍
+容错负载是dubbo的重要组成模块，该模块实现了多种集群特性，还实现了目录服务、负载均衡、路由策略和服务治理配置等特性。
+![容错负载架构设计图](../../docs/img/dubbo/cluster.jpg)
+组件说明：
+- [Invoker](#Invoker):是服务提供者(Provider)的抽象，Invoker封装了Provider地址及服务接口信息。
+- [Directory](#Directory):代表多个Invoker，可以把它看作List，但与List不同的是，它的值可能是动态变化的，比如注册中心推送变更。
+- [Cluster](#Cluster):将Directory中多个Invoker伪装成一个Invoker，伪装过程包含了容错逻辑，调用失败后，重试另一个。
+- [Router](#Router):可以从多个Invoker中通过路由规则进行过滤和筛选
+- [LoadBalance](#LoadBalance):可以从多个Invoker中选出一个使用
+
+负载均衡的类结构图：
+![负载均衡的类结构图](../../docs/img/dubbo/LoadBalance.png)
+
+- [RoundRobinLoadBalance](#RoundRobinLoadBalance):权重轮询算法，按照公约后的权重设置轮询比例
+
+    原理：把来自用户的请求轮流分配给内部中的服务器，例如：从1开始，一直到N(其中，N是内部服务器的总数)，然后重新开始循环。
+- [LeastActiveLoadBalance](#LeastActiveLoadBalance):最少活跃调用数均衡算法
+
+    原理：最少活跃调用数吗，活跃数指调用前后计数差，使慢的机器收到更少。
+- [ConsistentHashLoadBalance](#ConsistentHashLoadBalance):一致性HASH算法
+
+    原理：一致性HASH，相同参数的请求总是发到同一个提供者，一致性HASH算法可以解决服务提供者的增加、移除及“挂掉”时的情况，也可以
+    通过构建虚拟节点，尽可能避免分配失衡，具有很好的平衡性。
+- [RandomLoadBalance](#RandomLoadBalance):随机均衡算法(Dubbo的默认负载均衡策略)
+
+    原理：按权重设置的随机概率，如果每个提供者的权重都相同，那么根据列表长度直接随机选取一个，如果权重不同，则累加权重值。从
+    0~累加的权重值中选取一个随机数，然后判断该随机数落在哪个提供者上。
+- [ShortestResponseLoadBalance](#ShortestResponseLoadBalance):最短响应算法，筛选成功调用的响应时间最短的调用器的数量
+    
+    原理：分为一个或多个调用程序情况，一个调用程序时，直接使用调用程序;多个时，如果多个调用者且权重不相同，则按总权重随机，
+    如果有多个调用器且权重相同，则随机调用。
+
+
+集群策略类结构图：
+![集群策略类结构图](../../docs/img/dubbo/Cluster.png)
+
+- [FailoverCluster](#FailoverCluster):失败转移：当出现失败时，重试其他服务器，通常用于读操作，但重试会带来更长延迟(默认策略)
+- [FailfastCluster](#FailfastCluster):快速失败：只发起一次调用，失败立即报错，通常用于非幂等性操作
+- [FailbackCluster](#FailbackCluster):失败自动恢复：对应Invoker调用失败，后台记录失败请求，任务定时重发，通常用于通知
+- [BroadcastCluster](#BroadcastCluster):广播调用：遍历所有Invokers，如果调用其中某个invoker报错，则“catch”住异常，
+这样就不影响其他Invoker调用
+- [AvailableCluster](#AvailableCluster):获取可用的调用：遍历所有Invokers并判断Invoker.isAvalible，只要有一个为true就
+直接调用返回，不管成不成功
+- [FailsafeCluster](#FailsafeCluster):失败安全：出现异常时，直接忽略，通常用于写入审计日志等操作
+- [ForkingCluster](#ForkingCluster):并行调用：只要一个成功即返回，通常用于实时性要求较高的操作，但需要浪费更多的服务资源
+- [MergeableCluster](#MergeableCluster):分组聚合，按组合并返回结果，比如某个服务接口有多种实现，可以用group区分，调用者
+调用多种实现并将得到的结果合并
+
+集群目录类结构图：
+![集群目录类结构图](../../docs/img/dubbo/Directory.png)
+
+- [Directory](#Directory):代表多个Invoker，可以看做List，它的值可能是动态变化的，比如注册中心推送变更
+- [StaticDirectory](#StaticDirectory):静态目录服务，它的所有Invoker通过构造函数传入，并且将所有Invoker返回
+- [RegistryDirectory](RegistryDirectory):注册目录服务，它的Invoker集合是从注册中心获取的，并且实现了NotifyListener
+接口的notify(list)方法
+- [AbstractDirectory](#AbstractDirectory):所有目录服务实现的抽象类，他在获取所有的Invoker后，通过Router服务进行路由过滤
+
+路由类结构图：
+![集群目录类结构图](../../docs/img/dubbo/Router.png)
+
+- [ConditionRouter](#ConditionRouter):基于条件表达式的路由规则，不足之处是在规则复杂且多分支的情况下，规则不容易描述
+- [ScriptRouter](#ScriptRouter):基于脚本引擎的路由规则，没有运行沙箱，脚本能力强大，可能成为后门。
+
+
+#### 2.2.2 源码分析
+在MockClusterInvoker实例中正常执行流程，代码执行到了AbstractClusterInvoker类的invoker方法中，AbstractClusterInvoker类主要用于
+集群选择的抽象类，源码如下：
+
+```java
+public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
+    // ......
+    
+    public Result invoke(final Invocation invocation) throws RpcException {
+        //健康检查
+        checkWhetherDestroyed();
+
+        // 将附件与调用绑定在一起
+        Map<String, Object> contextAttachments = RpcContext.getContext().getObjectAttachments();
+        if (contextAttachments != null && contextAttachments.size() != 0) {
+            ((RpcInvocation) invocation).addObjectAttachments(contextAttachments);
+        }
+        //获取所有可用的服务列表
+        List<Invoker<T>> invokers = list(invocation);
+        //获取默认负载策略，如果暂时没有地址信息，则使用默认的负载均衡策略（RandomLoadBalance）
+        LoadBalance loadbalance = initLoadBalance(invokers, invocation);
+        //如果是异步则需要加入相应的信息
+        RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
+        //根据地址及负载均衡策略发起调用
+        return doInvoke(invocation, invokers, loadbalance);
+    }
+    
+    protected void checkWhetherDestroyed() {
+        if (destroyed.get()) {
+            throw new RpcException("Rpc cluster invoker for " + getInterface() + " on consumer " 
+            + NetUtils.getLocalHost()
+                    + " use dubbo version " + Version.getVersion()
+                    + " is now destroyed! Can not invoke any more.");
+        }
+    }
+    
+    protected LoadBalance initLoadBalance(List<Invoker<T>> invokers, Invocation invocation) {
+        if (CollectionUtils.isNotEmpty(invokers)) {
+            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
+                    .getMethodParameter(RpcUtils.getMethodName(invocation), LOADBALANCE_KEY, DEFAULT_LOADBALANCE));
+        } else {
+            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(DEFAULT_LOADBALANCE);
+        }
+    }
+    
+    protected List<Invoker<T>> list(Invocation invocation) throws RpcException {
+        return directory.list(invocation);
+    }
+    
+    // ......
+}
+```
+
+通过上层抽象类AbstractDirectory可以调用RegistryDirectory的doList(Invocation)方法来获取invocation的所有Invoker。其中
+invocation只需要给出调用的方法名称即可，Invoker则负责发送调用请求和接收返回结果，里面封装了所有的通信、序列化细节。
+
+RegistryDirectory包含了一个subscribe方法，用来向Registry请求所需要的服务调用地址，然后Registry会通过notify方法回调
+RegistryDirectory，notify方法就会把这些服务的地址进一步封装成Invoker，并且缓存起来。这样调用doList的时候直接根据invocation
+的方法名来找对应的Invoker就可以了。这样就根据invocation参数获取了Invoker列表。
+
+RegistryDirectory的doList返回的是一个List列表，也就是可能会存在多个可用的服务实现，可以通过负载balance来决定使用哪个服务实现。
+
+在上面Invoker方法中通过list方法获取可用服务列表后，接着通过SPI的机制获取默认的负载均衡（RandomLoadBalance），然后将invocation、
+可用服务列表和默认负载策略以参数的方式传入默认的集群策略类FailoverClusterInvoker的doInvoker方法。源码如下：
+```java
+public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
+    private static final Logger logger = LoggerFactory.getLogger(FailoverClusterInvoker.class);
+
+    public FailoverClusterInvoker(Directory<T> directory) {
+        super(directory);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Result doInvoke(Invocation invocation, final List<Invoker<T>> invokers, LoadBalance loadbalance) 
+    throws RpcException {
+        List<Invoker<T>> copyInvokers = invokers;
+        checkInvokers(copyInvokers, invocation);
+        String methodName = RpcUtils.getMethodName(invocation);
+        //获取URL中retries关键字的值，默认重试次数为2(最多执行3次)。每一次重试都要重新获取可以用的服务列表
+        //然后根据选定的负载均衡策略选出一个可用的服务进行调用。如果失败要判断当前异常是否是业务异常，如果不
+        //是则不再重试直接抛出异常
+        int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
+        if (len <= 0) {
+            len = 1;
+        }
+        // retry loop.
+        RpcException le = null; // last exception.
+        List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.
+        Set<String> providers = new HashSet<String>(len);
+        //发起指定次数的调用，只要有一次成功就返回
+        for (int i = 0; i < len; i++) {
+            //Reselect before retry to avoid a change of candidate `invokers`.
+            //NOTE: if `invokers` changed, then `invoked` also lose accuracy.
+            if (i > 0) {
+                checkWhetherDestroyed();
+                copyInvokers = list(invocation);
+                // 重新检查一下
+                checkInvokers(copyInvokers, invocation);
+            }
+            //根据负载均衡算法得到一个地址
+            Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);
+            //记录发起过调用的地址，防止重试时调用过的地址
+            invoked.add(invoker);
+            RpcContext.getContext().setInvokers((List) invoked);
+            try {
+                //通过之前选出的地址进行调用
+                Result result = invoker.invoke(invocation);
+                //调用成功后，判断之前是否经过重试，如果重试过则记录警告信息
+                if (le != null && logger.isWarnEnabled()) {
+                    logger.warn("Although retry the method " + methodName
+                            + " in the service " + getInterface().getName()
+                            + " was successful by the provider " + invoker.getUrl().getAddress()
+                            + ", but there have been failed providers " + providers
+                            + " (" + providers.size() + "/" + copyInvokers.size()
+                            + ") from the registry " + directory.getUrl().getAddress()
+                            + " on the consumer " + NetUtils.getLocalHost()
+                            + " using the dubbo version " + Version.getVersion() + ". Last error is: "
+                            + le.getMessage(), le);
+                }
+                return result;
+            } catch (RpcException e) {
+                 // 如果业务异常直接抛出异常，其他（如超时等错误）则不重试
+                if (e.isBiz()) {
+                    throw e;
+                }
+                le = e;
+            } catch (Throwable e) {
+                le = new RpcException(e.getMessage(), e);
+            } finally {
+                providers.add(invoker.getUrl().getAddress());
+            }
+        }
+        throw new RpcException(le.getCode(), "Failed to invoke the method "
+                + methodName + " in the service " + getInterface().getName()
+                + ". Tried " + len + " times of the providers " + providers
+                + " (" + providers.size() + "/" + copyInvokers.size()
+                + ") from the registry " + directory.getUrl().getAddress()
+                + " on the consumer " + NetUtils.getLocalHost() + " using the dubbo version "
+                + Version.getVersion() + ". Last error is: "
+                + le.getMessage(), le.getCause() != null ? le.getCause() : le);
+    }    
+}
+```
+
+在看一下上面代码中执行的select方法，该方法在AbstractClusterInvoker中，源码如下：
+```java
+public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
+    //......
+    /**
+    * 如果sticky = true，表示调用端在使用这个服务接口上面的所有方法，都使用同一provider；
+    * 如果sticky = false，则通过doSelect方法进行服务选择
+    */
+    protected Invoker<T> select(LoadBalance loadbalance, Invocation invocation,
+                                List<Invoker<T>> invokers, List<Invoker<T>> selected) throws RpcException {
+
+        if (CollectionUtils.isEmpty(invokers)) {
+            return null;
+        }
+        String methodName = invocation == null ? StringUtils.EMPTY_STRING : invocation.getMethodName();
+        //如果sticky=true，则调用端在访问该接口上的所有方法时使用相同的provider
+        boolean sticky = invokers.get(0).getUrl()
+                .getMethodParameter(methodName, CLUSTER_STICKY_KEY, DEFAULT_CLUSTER_STICKY);
+
+        //如果provider已经不存在了，将其设置为null
+        if (stickyInvoker != null && !invokers.contains(stickyInvoker)) {
+            stickyInvoker = null;
+        }
+        //如果sticky=true，且之前有调用过得未失败的provider，则继续使用provider
+        if (sticky && stickyInvoker != null && (selected == null || !selected.contains(stickyInvoker))) {
+            if (availablecheck && stickyInvoker.isAvailable()) {
+                return stickyInvoker;
+            }
+        }
+        //选择Invoker
+        Invoker<T> invoker = doSelect(loadbalance, invocation, invokers, selected);
+
+        if (sticky) {
+            stickyInvoker = invoker;
+        }
+        return invoker;
+    }
+    
+    private Invoker<T> doSelect(LoadBalance loadbalance, Invocation invocation,
+                                 List<Invoker<T>> invokers, List<Invoker<T>> selected) throws RpcException {
+ 
+         if (CollectionUtils.isEmpty(invokers)) {
+             return null;
+         }
+         //如果可用服务就一个，直接返回
+         if (invokers.size() == 1) {
+             return invokers.get(0);
+         }
+         //通过负载均衡算法得到一个Invoker
+         Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation);
+ 
+         //如果selected中包含(优先判断)或不可用 && availablecheck = true则重试
+         if ((selected != null && selected.contains(invoker))
+                 || (!invoker.isAvailable() && getUrl() != null && availablecheck)) {
+             try {
+                 Invoker<T> rInvoker = reselect(loadbalance, invocation, invokers, selected, availablecheck);
+                 if (rInvoker != null) {
+                     invoker = rInvoker;
+                 } else {
+                     //检查第一次选的位置，如果不是最后，则选+1位置
+                     int index = invokers.indexOf(invoker);
+                     try {
+                         //避免碰撞
+                         invoker = invokers.get((index + 1) % invokers.size());
+                     } catch (Exception e) {
+                         logger.warn(e.getMessage() + " may because invokers list dynamic change, ignore.", e);
+                     }
+                 }
+             } catch (Throwable t) {
+                 logger.error("cluster reselect fail reason is :" + t.getMessage() + " if can not solve, you can set cluster.availablecheck=false in url", t);
+             }
+         }
+         return invoker;
+     }   
+    
+    //......
+}
+```
 
 
 
