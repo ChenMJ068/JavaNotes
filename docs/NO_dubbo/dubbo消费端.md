@@ -1058,9 +1058,12 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
                  || (!invoker.isAvailable() && getUrl() != null && availablecheck)) {
              try {
                  Invoker<T> rInvoker = reselect(loadbalance, invocation, invokers, selected, availablecheck);
+                 //重试的时候，选择的可用的服务不为null，直接返回
                  if (rInvoker != null) {
                      invoker = rInvoker;
-                 } else {
+                 } 
+                 //选择的服务为null，则选择当前服务的下一个服务，如果当前的Invoker已经是最后一个了，则只能选择最后一个返回
+                 else {
                      //检查第一次选的位置，如果不是最后，则选+1位置
                      int index = invokers.indexOf(invoker);
                      try {
@@ -1071,7 +1074,8 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
                      }
                  }
              } catch (Throwable t) {
-                 logger.error("cluster reselect fail reason is :" + t.getMessage() + " if can not solve, you can set cluster.availablecheck=false in url", t);
+                 logger.error("cluster reselect fail reason is :" + t.getMessage() + " if can not solve," +
+                  " you can set cluster.availablecheck=false in url", t);
              }
          }
          return invoker;
@@ -1081,6 +1085,134 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
 }
 ```
 
+上面的doSelect方法中，当可用大于1时，采用负载算法选择可用服务。在接口LoadBalance中可以看到默认的负载算法是RandomLoadBalance。
+```java
+@SPI(RandomLoadBalance.NAME)
+public interface LoadBalance {
+    //......
+}
+```
 
+下面看一下RandomLoadBalance的源码
+```java
+public class RandomLoadBalance extends AbstractLoadBalance {
 
+    public static final String NAME = "random";
 
+    @Override
+    protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        // Number of invokers
+        int length = invokers.size();
+        // Every invoker has the same weight?
+        boolean sameWeight = true;
+        // the weight of every invokers
+        int[] weights = new int[length];
+        // the first invoker's weight
+        int firstWeight = getWeight(invokers.get(0), invocation);
+        weights[0] = firstWeight;
+        // The sum of weights
+        int totalWeight = firstWeight;
+        for (int i = 1; i < length; i++) {
+            int weight = getWeight(invokers.get(i), invocation);
+            // save for later use
+            weights[i] = weight;
+            // Sum
+            totalWeight += weight;
+            //计算所有权重是否一样
+            if (sameWeight && weight != firstWeight) {
+                sameWeight = false;
+            }
+        }
+        if (totalWeight > 0 && !sameWeight) {
+            // 如果权重不相同且权重大于0则按照权重数随机
+            int offset = ThreadLocalRandom.current().nextInt(totalWeight);
+            // 确定随机值落在哪个片段上
+            for (int i = 0; i < length; i++) {
+                offset -= weights[i];
+                if (offset < 0) {
+                    return invokers.get(i);
+                }
+            }
+        }
+        // 如果权重相同或权重为0则均等随机
+        return invokers.get(ThreadLocalRandom.current().nextInt(length));
+    }
+
+}
+```
+
+随机调度算法又分两种情况：
+- 当所有服务提供者权重相同或无权重时，则根据列表size得到一个值，再随机得出一个[0,size)的数值，根据这个数值获取
+对应位置的服务提供者。
+- 计算所有服务提供者权重之和，例如有5个Invoker，总权重为25，则随机得出[0,24]的一个值，根据各个Invoker的区间来取Invoker，
+如随机值为10，则选择第二个Invoker。
+
+那么权重应该怎么获取呢？源码中调用getWeight方法进行实现的。源码如下：
+```java
+    int getWeight(Invoker<?> invoker, Invocation invocation) {
+        int weight; //provider配置的权重，默认为100
+        URL url = invoker.getUrl();
+        // 有多个注册中心时，注册中心之间进行负载均衡
+        if (REGISTRY_SERVICE_REFERENCE_PATH.equals(url.getServiceInterface())) {
+            weight = url.getParameter(REGISTRY_KEY + "." + WEIGHT_KEY, DEFAULT_WEIGHT);
+        } else {
+            weight = url.getMethodParameter(invocation.getMethodName(), WEIGHT_KEY, DEFAULT_WEIGHT);
+            if (weight > 0) {
+                long timestamp = invoker.getUrl().getParameter(TIMESTAMP_KEY, 0L);
+                if (timestamp > 0L) {
+                    long uptime = System.currentTimeMillis() - timestamp;
+                    if (uptime < 0) {
+                        return 1;
+                    }
+                    int warmup = invoker.getUrl().getParameter(WARMUP_KEY, DEFAULT_WARMUP);
+                    //如果启动时长大于预热时间，则需要降权。权重计算方式为启动时长占预热时间的百分比x权重，
+                    //如启动时长为20000ms，预热时间为60000ms，权重为120，则最终权重为120x(1/3)=30.注意
+                    //calculateWarmupWeight使用float进行计算，因此结果并不精确。
+                    if (uptime > 0 && uptime < warmup) {
+                        weight = calculateWarmupWeight((int)uptime, warmup, weight);
+                    }
+                }
+            }
+        }
+        return Math.max(weight, 0);
+    }
+    
+    static int calculateWarmupWeight(int uptime, int warmup, int weight) {
+        int ww = (int) ( uptime / ((float) warmup / weight));
+        return ww < 1 ? 1 : (Math.min(ww, weight));
+    }    
+```
+
+经过一系列源码阅读后，在通过select方法选择出一个可用服务后，接下来就进入服务调用环节了。也就是
+```java
+Result result = invoker.invoker(invocation);
+```
+这一行代码会经过一系列的Filter通过配置好的通讯协议，远程调用相应的Provider，执行并返回结果，返回结果和异常信息全部封装到
+Result对象中，最终实现一次完整的调用过程。
+
+Dubbo Filter类列表如下：
+![Dubbo Filter](../../docs/img/dubbo/dubbo-filter.png)
+
+上图中的Filter类都实现了接口Filter，这些Filter类都是在定义Filter的时候通过注解指定的。Filter是一种递归的链式调用，用来在远
+程调用真正执行的前后加入一些逻辑，类似于AOP的拦截器Servlet中Filter概念一样。Filter接口的源码如下：
+```java
+@SPI
+public interface Filter {
+    /**
+     * Make sure call invoker.invoke() in your implementation.
+     */
+    Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException;
+
+    interface Listener {
+
+        void onResponse(Result appResponse, Invoker<?> invoker, Invocation invocation);
+
+        void onError(Throwable t, Invoker<?> invoker, Invocation invocation);
+    }
+
+}
+```
+在ProtocolFilterWrapper类中，通过服务的暴露与引用，根据key是provider还是consumer来构建服务提供者与消费者的调用过滤器链。
+
+在Filter的实现类需要加上@Activate()注解，@Activate()的grop属性是一个String数组，可用通过这个属性来指定Filter是在Consumer
+或Provider这是两者都有的情况下激活。所谓激活就是能够被获取并组成Filter链。
