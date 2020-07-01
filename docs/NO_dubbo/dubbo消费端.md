@@ -10,7 +10,6 @@
     - [2.远程调用](#远程调用)
          - [2.1代理调用](#2.1代理调用)
          - [2.2容错负载](#2.2容错负载)
-    - [dubbo extension机制](#dubbo extension机制)
 <!-- /MarkdownTOC -->
 
 ## 1.创建代理类
@@ -1191,6 +1190,7 @@ Result result = invoker.invoker(invocation);
 Result对象中，最终实现一次完整的调用过程。
 
 Dubbo Filter类列表如下：
+
 ![Dubbo Filter](../../docs/img/dubbo/dubbo-filter.png)
 
 上图中的Filter类都实现了接口Filter，这些Filter类都是在定义Filter的时候通过注解指定的。Filter是一种递归的链式调用，用来在远

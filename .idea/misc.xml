@@ -12,10 +12,14 @@
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-server/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/notes-dubbo-client/pom.xml" />
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/pom.xml" />
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-provider/pom.xml" />
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-consumer/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
+        <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/pom.xml" />
         <option value="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbos/pom.xml" />
       </set>
     </option>
