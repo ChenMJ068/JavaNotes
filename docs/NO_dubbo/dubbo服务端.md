@@ -311,7 +311,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
 ![服务](../../docs/img/dubbo/服务.png)
 
-下面分析这三个过程：
+下面以默认的ZooKeeper为例，分析这三个过程：
 ## 2.设置端口服务
 先看代码：
 ```java
@@ -687,18 +687,29 @@ public class RegistryProtocol implements Protocol {
 这个方法主要返回ExporterChangeableWrapper对象，如果没有则通过DubboProtocol的export方法创建，源码如下：
 ```java
 public class DubboProtocol extends AbstractProtocol {
- public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+    //......
+    public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         URL url = invoker.getUrl();
 
         // export service.
+        //key是服务的全路径+端口号，比如：org.apache.dubbo.demo.DemoService:20880
+        //客户端发起远程调用时，服务端通过key来决定调用哪个Exporter，也就是执行的Invoker
         String key = serviceKey(url);
+        //创建DubboExporter，Invoker实际上就是真正的本地服务实现类实例
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
+        //将key和exporter存入map
         exporterMap.put(key, exporter);
 
-        //export an stub service for dispatching event
+        //是否支持本地存根
+        //服务提供者想在调用者上也执行部分逻辑，就设置此参数
         Boolean isStubSupportEvent = url.getParameter(STUB_EVENT_KEY, DEFAULT_STUB_EVENT);
+        
+        //获取是否支持回调服务参数值，默认为false
         Boolean isCallbackservice = url.getParameter(IS_CALLBACK_SERVICE, false);
+        
+        //判断是否支持存根事件，并且isCallbackservice不是回调服务
         if (isStubSupportEvent && !isCallbackservice) {
+            
             String stubServiceMethods = url.getParameter(STUB_EVENT_METHODS_KEY);
             if (stubServiceMethods == null || stubServiceMethods.length() == 0) {
                 if (logger.isWarnEnabled()) {
@@ -709,19 +720,187 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+        //根据url绑定IP与端口，建立NIO框架的Server
         openServer(url);
         optimizeSerialization(url);
 
         return exporter;
     }    
+    //......
 }
 ```
 
 ###4.2获取ZooKeeperRegistry注册实例
 
-###4.3向ZooKeeper注册服务地址
+在上面的RegistryProtocol的export方法中有获取注册实例代码：
+```java
+final Registry registry = getRegistry(originInvoker);
+```
+这里的getRegistry方法调用的是AbstractRegistryFactory中的getRegistry方法，源码如下：
 
+```java
+public abstract class AbstractRegistryFactory implements RegistryFactory {
+    //......
+
+    public Registry getRegistry(URL url) {
+        if (destroyed.get()) {
+            LOGGER.warn("All registry instances have been destroyed, failed to fetch any instance. " +
+                    "Usually, this means no need to try to do unnecessary redundant resource clearance, all registries has been taken care of.");
+            return DEFAULT_NOP_REGISTRY;
+        }
+
+        url = URLBuilder.from(url)
+                .setPath(RegistryService.class.getName())
+                .addParameter(INTERFACE_KEY, RegistryService.class.getName())
+                .removeParameters(EXPORT_KEY, REFER_KEY)
+                .build();
+        String key = createRegistryCacheKey(url);
+        // 锁定注册中心获取过程，保证注册中单一实例
+        LOCK.lock();
+        try {
+            //从缓存注册中获取注册实例
+            Registry registry = REGISTRIES.get(key);
+            if (registry != null) {
+                return registry;
+            }
+            //如果缓存中没有注册实例，则创建一个
+            registry = createRegistry(url);
+            if (registry == null) {
+                throw new IllegalStateException("Can not create registry " + url);
+            }
+            REGISTRIES.put(key, registry);
+            return registry;
+        } finally {
+            // 释放锁
+            LOCK.unlock();
+        }
+    }
+    // .......
+}    
+```
+createRegistry方法创建了ZooKeeperRegistry实例，在实例的构造方法中初始化了ZooKeeper的链接，并将创建好的ZooKeeperRegistry
+实例缓存到REGISTRIES中，可以就是服务的全路径名+dubbo端口号，如：org.apache.dubbo.demo.DemoService:20880。
+###4.3向ZooKeeper注册服务地址
+在上面的RegistryProtocol的export方法中有代码段：
+```java
+ register(registryUrl, registeredProviderUrl);
+```
+这段代码最后调用FailbackRegistry的register方法，源码如下：
+```java
+public abstract class FailbackRegistry extends AbstractRegistry {
+    //......
+    
+    public void register(URL url) {
+        if (!acceptable(url)) {
+            logger.info("URL " + url + " will not be registered to Registry. Registry " + url + " does not accept service of this protocol type.");
+            return;
+        }
+        super.register(url);
+        //从失败注册列表中删除注册URL
+        removeFailedRegistered(url);
+        //从失败请求列表中删除注册的URL
+        removeFailedUnregistered(url);
+        try {
+            // 向服务器端发送注册请求
+            doRegister(url);
+        } catch (Exception e) {
+            Throwable t = e;
+
+            // 如果开启了启动时检测，则直接抛出异常
+            boolean check = getUrl().getParameter(Constants.CHECK_KEY, true)
+                    && url.getParameter(Constants.CHECK_KEY, true)
+                    && !CONSUMER_PROTOCOL.equals(url.getProtocol());
+            boolean skipFailback = t instanceof SkipFailbackWrapperException;
+            if (check || skipFailback) {
+                if (skipFailback) {
+                    t = t.getCause();
+                }
+                throw new IllegalStateException("Failed to register " + url + " to registry " + getUrl().getAddress() + ", cause: " + t.getMessage(), t);
+            } else {
+                logger.error("Failed to register " + url + ", waiting for retry, cause: " + t.getMessage(), t);
+            }
+
+            // 将失败的注册请求记录到失败列表，定时重试
+            addFailedRegistered(url);
+        }
+    }   
+    //......
+}
+    
+```
+
+首先从注册失败列表和失败取消请求列表中删除注册的URL，然后执行doRegister方法向ZooKeeper注册中心注册服务。
+
+服务注册需处理契约：
+(1).当URL设置了check=false时，注册失败后不报错，在后台定时重试，否则抛出异常。  
+(2).当URL设置了dynamic=false时，则需要持久存储，否则当注册者出现断电等情况异常退出时，需要自动删除。  
+(3).当URL设置了category=false时，表示分类存储，默认为providers，可按分类部分通知数据。  
+(4).当注册中重启、网络抖动时，不能丢失数据，包括断线自动删除数据。  
+(5).允许URI相同但参数不同的URL并存，不能覆盖。  
 
 ###4.4注册中心订阅OverrideSubscribeUrl
+代码执行到：
+```java
+ registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
+```
+subscribe方法订阅刚刚注册的provider服务，overrideSubscribeUrl示例如下：
 
+```
+provider://10.10.10.10:20880/org.apache.dubbo.demo.DemoService?anyhost=true&application=demo-provider&
+category=configurators&check=false&dubbo=2.0.0&generic=false&interface=org.apache.dubbo.demo.DemoService
+&methods=sayHello&pid=5259&side=provider&timestamp=1507294508053
+```
+subscribe方法源码如下：
+```java
+public abstract class FailbackRegistry extends AbstractRegistry {
+    //......
+    public void subscribe(URL url, NotifyListener listener) {
+        super.subscribe(url, listener);
+        removeFailedSubscribed(url, listener);
+        try {
+            // 向服务器端发送订阅请求
+            doSubscribe(url, listener);
+        } catch (Exception e) {
+            Throwable t = e;
 
+            List<URL> urls = getCacheUrls(url);
+            if (CollectionUtils.isNotEmpty(urls)) {
+                notify(url, listener, urls);
+                logger.error("Failed to subscribe " + url + ", Using cached list: " + urls + " from cache file: " + getUrl().getParameter(FILE_KEY, System.getProperty("user.home") + "/dubbo-registry-" + url.getHost() + ".cache") + ", cause: " + t.getMessage(), t);
+            } else {
+                // 如果开启了启动时检测，则直接抛出异常
+                boolean check = getUrl().getParameter(Constants.CHECK_KEY, true)
+                        && url.getParameter(Constants.CHECK_KEY, true);
+                boolean skipFailback = t instanceof SkipFailbackWrapperException;
+                if (check || skipFailback) {
+                    if (skipFailback) {
+                        t = t.getCause();
+                    }
+                    throw new IllegalStateException("Failed to subscribe " + url + ", cause: " + t.getMessage(), t);
+                } else {
+                    logger.error("Failed to subscribe " + url + ", waiting for retry, cause: " + t.getMessage(), t);
+                }
+            }
+
+            // 将失败的注册请求记录到失败的列表中，定时重试
+            addFailedSubscribed(url, listener);
+        }
+    }    
+    
+    //......
+}
+```
+
+订阅符合条件的已注册数据，当有注册数据变更时自动推送，并且会触发overrideSubscribeListener的notify方法重新暴露服务。
+订阅需处理契约：
+(1).当URL设置了check=false时，订阅失败后不报错，在后台定时重试。  
+(2).当URL设置了category=false时，只通知指定分类的数据，多个分类用逗号分隔，并允许星号通配，表示订阅所有分类数据。  
+(3).允许interface、group、version、classifier作为查询条件。  
+(4).查询条件允许星号通配，订阅有分组和版本的接口。  
+(5).当注册中心重启、网络抖动时，需要自动恢复订阅请求。  
+(6).允许URI相同但参数不同的URL并存，不能覆盖。  
+(7).阻塞订阅过程，等第一次通知完后再返回。
+
+provider服务注册过程如下图所示：
+
+![暴露服务时序](../../docs/img/dubbo/暴露服务时序.png)
