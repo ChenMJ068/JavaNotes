@@ -16,7 +16,7 @@
 与Dubbo消费端类似，服务端的核心类是ServiceBean，在Spring解析Dubbo的service标签时，在DubboNamespaceHandler类中进行加载。想要
 发布一个服务，只需要在Dubbo文件中配置相应的服务即可。
 ```xml
-<dubbo:service interface="org.apache.dubbo.demo.DemoService" ref="demoService"/>
+<dubbo:service interface="com.alibaba.dubbo.demo.DemoService" ref="demoService"/>
 ```
 ServiceBean类的继承关系如图：
 
@@ -49,166 +49,134 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
       */
      @Override
      public void afterPropertiesSet() throws Exception {
-         if (getProvider() == null) {
-             Map<String, ProviderConfig> providerConfigMap = applicationContext == null ?
-                null : BeanFactoryUtils.beansOfTypeIncludingAncestors(
-                        applicationContext, ProviderConfig.class, false, false);
-             
-             if (providerConfigMap != null && providerConfigMap.size() > 0) {
-                 
-                 Map<String, ProtocolConfig> protocolConfigMap = applicationContext == null ? 
-                    null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext,
-                     ProtocolConfig.class, false, false);
-                 
-                 if ((protocolConfigMap == null || protocolConfigMap.size() == 0)
-                         && providerConfigMap.size() > 1) { // 兼容旧版本
-                     
-                     List<ProviderConfig> providerConfigs = new ArrayList<ProviderConfig>();
-                     for (ProviderConfig config : providerConfigMap.values()) {
-                         if (config.isDefault() != null && config.isDefault().booleanValue()) {
-                             providerConfigs.add(config);
-                         }
-                     }
-                     if (providerConfigs.size() > 0) {
-                         setProviders(providerConfigs);
-                     }
-                 } else {
-                     ProviderConfig providerConfig = null;
-                     for (ProviderConfig config : providerConfigMap.values()) {
-                         if (config.isDefault() == null || config.isDefault().booleanValue()) {
-                             if (providerConfig != null) {
-                                 throw new IllegalStateException("Duplicate provider configs: " 
-                                 + providerConfig + " and " + config);
-                             }
-                             providerConfig = config;
-                         }
-                     }
-                     if (providerConfig != null) {
-                         setProvider(providerConfig);
-                     }
-                 }
-             }
-         }
-         if (getApplication() == null
-                 && (getProvider() == null || getProvider().getApplication() == null)) {
-             Map<String, ApplicationConfig> applicationConfigMap = applicationContext == null ? 
-                null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext,
-                    ApplicationConfig.class, false, false);
-             
-             if (applicationConfigMap != null && applicationConfigMap.size() > 0) {
-                 ApplicationConfig applicationConfig = null;
-                 for (ApplicationConfig config : applicationConfigMap.values()) {
-                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
-                         if (applicationConfig != null) {
-                             throw new IllegalStateException("Duplicate application configs: " 
-                             + applicationConfig + " and " + config);
-                         }
-                         applicationConfig = config;
-                     }
-                 }
-                 if (applicationConfig != null) {
-                     setApplication(applicationConfig);
-                 }
-             }
-         }
-         if (getModule() == null
-                 && (getProvider() == null || getProvider().getModule() == null)) {
-             Map<String, ModuleConfig> moduleConfigMap = applicationContext == null ? null : 
-                BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, 
-                    ModuleConfig.class, false, false);
-             
-             if (moduleConfigMap != null && moduleConfigMap.size() > 0) {
-                 ModuleConfig moduleConfig = null;
-                 for (ModuleConfig config : moduleConfigMap.values()) {
-                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
-                         if (moduleConfig != null) {
-                             throw new IllegalStateException("Duplicate module configs: " 
-                                + moduleConfig + " and " + config);
-                         }
-                         moduleConfig = config;
-                     }
-                 }
-                 if (moduleConfig != null) {
-                     setModule(moduleConfig);
-                 }
-             }
-         }
-         if ((getRegistries() == null || getRegistries().size() == 0)
-                 && (getProvider() == null || getProvider().getRegistries() == null || 
-                    getProvider().getRegistries().size() == 0)
-                 && (getApplication() == null || getApplication().getRegistries() == null || 
-                    getApplication().getRegistries().size() == 0)) {
-             
-             Map<String, RegistryConfig> registryConfigMap = applicationContext == null ? 
-                null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, 
-                    RegistryConfig.class, false, false);
-             if (registryConfigMap != null && registryConfigMap.size() > 0) {
-                 List<RegistryConfig> registryConfigs = new ArrayList<RegistryConfig>();
-                 for (RegistryConfig config : registryConfigMap.values()) {
-                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
-                         registryConfigs.add(config);
-                     }
-                 }
-                 if (registryConfigs != null && registryConfigs.size() > 0) {
-                     super.setRegistries(registryConfigs);
-                 }
-             }
-         }
-         if (getMonitor() == null
-                 && (getProvider() == null || getProvider().getMonitor() == null)
-                 && (getApplication() == null || getApplication().getMonitor() == null)) {
-             
-             Map<String, MonitorConfig> monitorConfigMap = applicationContext == null ? null : 
-                BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, 
-                    MonitorConfig.class, false, false);
-             
-             if (monitorConfigMap != null && monitorConfigMap.size() > 0) {
-                 MonitorConfig monitorConfig = null;
-                 for (MonitorConfig config : monitorConfigMap.values()) {
-                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
-                         if (monitorConfig != null) {
-                             throw new IllegalStateException("Duplicate monitor configs: " 
-                                + monitorConfig + " and " + config);
-                         }
-                         monitorConfig = config;
-                     }
-                 }
-                 if (monitorConfig != null) {
-                     setMonitor(monitorConfig);
-                 }
-             }
-         }
-         if ((getProtocols() == null || getProtocols().size() == 0)
-                 && (getProvider() == null || getProvider().getProtocols() == null || 
-                    getProvider().getProtocols().size() == 0)) {
-             
-             Map<String, ProtocolConfig> protocolConfigMap = applicationContext == null ? 
-                null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, 
-                    ProtocolConfig.class, false, false);
-             
-             if (protocolConfigMap != null && protocolConfigMap.size() > 0) {
-                 List<ProtocolConfig> protocolConfigs = new ArrayList<ProtocolConfig>();
-                 for (ProtocolConfig config : protocolConfigMap.values()) {
-                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
-                         protocolConfigs.add(config);
-                     }
-                 }
-                 if (protocolConfigs != null && protocolConfigs.size() > 0) {
-                     super.setProtocols(protocolConfigs);
-                 }
-             }
-         }
-         if (getPath() == null || getPath().length() == 0) {
-             if (beanName != null && beanName.length() > 0
-                     && getInterface() != null && getInterface().length() > 0
-                     && beanName.startsWith(getInterface())) {
-                 setPath(beanName);
-             }
-         }
-         if (!isDelay()) {//设置的延迟时间大于0
-             export();
-         }
-     }
+        if (getProvider() == null) {
+            Map<String, ProviderConfig> providerConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ProviderConfig.class, false, false);
+            if (providerConfigMap != null && providerConfigMap.size() > 0) {
+                Map<String, ProtocolConfig> protocolConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ProtocolConfig.class, false, false);
+                if ((protocolConfigMap == null || protocolConfigMap.size() == 0)
+                        && providerConfigMap.size() > 1) { // backward compatibility
+                    List<ProviderConfig> providerConfigs = new ArrayList<ProviderConfig>();
+                    for (ProviderConfig config : providerConfigMap.values()) {
+                        if (config.isDefault() != null && config.isDefault().booleanValue()) {
+                            providerConfigs.add(config);
+                        }
+                    }
+                    if (!providerConfigs.isEmpty()) {
+                        setProviders(providerConfigs);
+                    }
+                } else {
+                    ProviderConfig providerConfig = null;
+                    for (ProviderConfig config : providerConfigMap.values()) {
+                        if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                            if (providerConfig != null) {
+                                throw new IllegalStateException("Duplicate provider configs: " + providerConfig + " and " + config);
+                            }
+                            providerConfig = config;
+                        }
+                    }
+                    if (providerConfig != null) {
+                        setProvider(providerConfig);
+                    }
+                }
+            }
+        }
+        if (getApplication() == null
+                && (getProvider() == null || getProvider().getApplication() == null)) {
+            Map<String, ApplicationConfig> applicationConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ApplicationConfig.class, false, false);
+            if (applicationConfigMap != null && applicationConfigMap.size() > 0) {
+                ApplicationConfig applicationConfig = null;
+                for (ApplicationConfig config : applicationConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (applicationConfig != null) {
+                            throw new IllegalStateException("Duplicate application configs: " + applicationConfig + " and " + config);
+                        }
+                        applicationConfig = config;
+                    }
+                }
+                if (applicationConfig != null) {
+                    setApplication(applicationConfig);
+                }
+            }
+        }
+        if (getModule() == null
+                && (getProvider() == null || getProvider().getModule() == null)) {
+            Map<String, ModuleConfig> moduleConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ModuleConfig.class, false, false);
+            if (moduleConfigMap != null && moduleConfigMap.size() > 0) {
+                ModuleConfig moduleConfig = null;
+                for (ModuleConfig config : moduleConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (moduleConfig != null) {
+                            throw new IllegalStateException("Duplicate module configs: " + moduleConfig + " and " + config);
+                        }
+                        moduleConfig = config;
+                    }
+                }
+                if (moduleConfig != null) {
+                    setModule(moduleConfig);
+                }
+            }
+        }
+        if ((getRegistries() == null || getRegistries().isEmpty())
+                && (getProvider() == null || getProvider().getRegistries() == null || getProvider().getRegistries().isEmpty())
+                && (getApplication() == null || getApplication().getRegistries() == null || getApplication().getRegistries().isEmpty())) {
+            Map<String, RegistryConfig> registryConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, RegistryConfig.class, false, false);
+            if (registryConfigMap != null && registryConfigMap.size() > 0) {
+                List<RegistryConfig> registryConfigs = new ArrayList<RegistryConfig>();
+                for (RegistryConfig config : registryConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        registryConfigs.add(config);
+                    }
+                }
+                if (registryConfigs != null && !registryConfigs.isEmpty()) {
+                    super.setRegistries(registryConfigs);
+                }
+            }
+        }
+        if (getMonitor() == null
+                && (getProvider() == null || getProvider().getMonitor() == null)
+                && (getApplication() == null || getApplication().getMonitor() == null)) {
+            Map<String, MonitorConfig> monitorConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, MonitorConfig.class, false, false);
+            if (monitorConfigMap != null && monitorConfigMap.size() > 0) {
+                MonitorConfig monitorConfig = null;
+                for (MonitorConfig config : monitorConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (monitorConfig != null) {
+                            throw new IllegalStateException("Duplicate monitor configs: " + monitorConfig + " and " + config);
+                        }
+                        monitorConfig = config;
+                    }
+                }
+                if (monitorConfig != null) {
+                    setMonitor(monitorConfig);
+                }
+            }
+        }
+        if ((getProtocols() == null || getProtocols().isEmpty())
+                && (getProvider() == null || getProvider().getProtocols() == null || getProvider().getProtocols().isEmpty())) {
+            Map<String, ProtocolConfig> protocolConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ProtocolConfig.class, false, false);
+            if (protocolConfigMap != null && protocolConfigMap.size() > 0) {
+                List<ProtocolConfig> protocolConfigs = new ArrayList<ProtocolConfig>();
+                for (ProtocolConfig config : protocolConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        protocolConfigs.add(config);
+                    }
+                }
+                if (protocolConfigs != null && !protocolConfigs.isEmpty()) {
+                    super.setProtocols(protocolConfigs);
+                }
+            }
+        }
+        if (getPath() == null || getPath().length() == 0) {
+            if (beanName != null && beanName.length() > 0
+                    && getInterface() != null && getInterface().length() > 0
+                    && beanName.startsWith(getInterface())) {
+                setPath(beanName);
+            }
+        }
+        if (!isDelay()) {
+            export();
+        }
+    }
 
     //......
 }
@@ -219,9 +187,7 @@ ServiceBean中成为默认配置。整个初始化的过程与ReferenceBean非�
 
 在ServiceBean中有两个重要的方法分别是onApplicationEvent(), export(),历史版本源码如下(目前GitHub版本ServiceBean已被重构)：
 ```java
-    /**
-    * 
-    */
+   
     public void onApplicationEvent(ApplicationEvent event) {
         if (ContextRefreshedEvent.class.getName().equals(event.getClass().getName())) {
             if (isDelay() && !isExported() && !isUnexported()) {
@@ -275,28 +241,9 @@ export()方法内部初始化delay延迟时间，如果设置了延迟时间则�
 初始化和校验Dubbo配置文件中定义的标签属性，在调用doExportUrls()，代码如下：
 ```java
 public class ServiceConfig<T> extends ServiceConfigBase<T> {
-    
     private void doExportUrls() {
-        ServiceRepository repository = ApplicationModel.getServiceRepository();
-        ServiceDescriptor serviceDescriptor = repository.registerService(getInterfaceClass());
-        repository.registerProvider(
-                getUniqueServiceName(),
-                ref,
-                serviceDescriptor,
-                this,
-                serviceMetadata
-        );
-        //获取所有注册中心的地址
-        List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
-
+        List<URL> registryURLs = loadRegistries(true);
         for (ProtocolConfig protocolConfig : protocols) {
-            String pathKey = URL.buildKey(getContextPath(protocolConfig)
-                    .map(p -> p + "/" + path)
-                    .orElse(path), group, version);
-            // In case user specified path, register service one more time to map it to path.
-            repository.registerService(pathKey, interfaceClass);
-            // TODO, uncomment this line once service key is unified
-            serviceMetadata.setServiceKey(pathKey);
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
@@ -317,32 +264,27 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 ```java
 public class ServiceConfig<T> extends ServiceConfigBase<T> {
     //......
-    
-    private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
+private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
         String name = protocolConfig.getName();
-        if (StringUtils.isEmpty(name)) {
-            name = DUBBO;
+        if (name == null || name.length() == 0) {
+            name = "dubbo";
         }
 
         Map<String, String> map = new HashMap<String, String>();
-        map.put(SIDE_KEY, PROVIDER_SIDE);
-
-        ServiceConfig.appendRuntimeParameters(map);
-        AbstractConfig.appendParameters(map, getMetrics());
-        AbstractConfig.appendParameters(map, getApplication());
-        AbstractConfig.appendParameters(map, getModule());
-        // remove 'default.' prefix for configs from ProviderConfig5 v6
-        // appendParameters(map, provider, Constants.DEFAULT_KEY);
-        AbstractConfig.appendParameters(map, provider);
-        AbstractConfig.appendParameters(map, protocolConfig);
-        AbstractConfig.appendParameters(map, this);
-        MetadataReportConfig metadataReportConfig = getMetadataReportConfig();
-        if (metadataReportConfig != null && metadataReportConfig.isValid()) {
-            map.putIfAbsent(METADATA_KEY, REMOTE_METADATA_STORAGE_TYPE);
+        map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
+        map.put(Constants.DUBBO_VERSION_KEY, Version.getVersion());
+        map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
+        if (ConfigUtils.getPid() > 0) {
+            map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
-        if (CollectionUtils.isNotEmpty(getMethods())) {
-            for (MethodConfig method : getMethods()) {
-                AbstractConfig.appendParameters(map, method, method.getName());
+        appendParameters(map, application);
+        appendParameters(map, module);
+        appendParameters(map, provider, Constants.DEFAULT_KEY);
+        appendParameters(map, protocolConfig);
+        appendParameters(map, this);
+        if (methods != null && !methods.isEmpty()) {
+            for (MethodConfig method : methods) {
+                appendParameters(map, method, method.getName());
                 String retryKey = method.getName() + ".retry";
                 if (map.containsKey(retryKey)) {
                     String retryValue = map.remove(retryKey);
@@ -351,13 +293,13 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     }
                 }
                 List<ArgumentConfig> arguments = method.getArguments();
-                if (CollectionUtils.isNotEmpty(arguments)) {
+                if (arguments != null && !arguments.isEmpty()) {
                     for (ArgumentConfig argument : arguments) {
                         // convert argument type
                         if (argument.getType() != null && argument.getType().length() > 0) {
                             Method[] methods = interfaceClass.getMethods();
                             // visit all methods
-                            if (methods.length > 0) {
+                            if (methods != null && methods.length > 0) {
                                 for (int i = 0; i < methods.length; i++) {
                                     String methodName = methods[i].getName();
                                     // target the method, and get its signature
@@ -366,24 +308,18 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                         // one callback in the method
                                         if (argument.getIndex() != -1) {
                                             if (argtypes[argument.getIndex()].getName().equals(argument.getType())) {
-                                                AbstractConfig.appendParameters(map, argument, method.getName() + "." 
-                                                + argument.getIndex());
+                                                appendParameters(map, argument, method.getName() + "." + argument.getIndex());
                                             } else {
-                                                throw new IllegalArgumentException("Argument config error : the index " +
-                                                 "attribute and type attribute not match :index :" + argument.getIndex() 
-                                                 + ", type:" + argument.getType());
+                                                throw new IllegalArgumentException("argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                             }
                                         } else {
                                             // multiple callbacks in the method
                                             for (int j = 0; j < argtypes.length; j++) {
                                                 Class<?> argclazz = argtypes[j];
                                                 if (argclazz.getName().equals(argument.getType())) {
-                                                    AbstractConfig.appendParameters(map, argument, method.getName() 
-                                                    + "." + j);
+                                                    appendParameters(map, argument, method.getName() + "." + j);
                                                     if (argument.getIndex() != -1 && argument.getIndex() != j) {
-                                                        throw new IllegalArgumentException("Argument config error :" +
-                                                         " the index attribute and type attribute not match :index :" + 
-                                                         argument.getIndex() + ", type:" + argument.getType());
+                                                        throw new IllegalArgumentException("argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                                     }
                                                 }
                                             }
@@ -392,11 +328,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                 }
                             }
                         } else if (argument.getIndex() != -1) {
-                            AbstractConfig.appendParameters(map, argument, method.getName() + "." 
-                            + argument.getIndex());
+                            appendParameters(map, argument, method.getName() + "." + argument.getIndex());
                         } else {
-                            throw new IllegalArgumentException("Argument config must set index or type " +
-                             "attribute.eg: <dubbo:argument index='0' .../> or <dubbo:argument type=xxx .../>");
+                            throw new IllegalArgumentException("argument config must set index or type attribute.eg: <dubbo:argument index='0' .../> or <dubbo:argument type=xxx .../>");
                         }
 
                     }
@@ -405,53 +339,50 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         }
 
         if (ProtocolUtils.isGeneric(generic)) {
-            map.put(GENERIC_KEY, generic);
-            map.put(METHODS_KEY, ANY_VALUE);
+            map.put(Constants.GENERIC_KEY, generic);
+            map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
         } else {
             String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
-                map.put(REVISION_KEY, revision);
+                map.put("revision", revision);
             }
 
             String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
             if (methods.length == 0) {
-                logger.warn("No method found in service interface " + interfaceClass.getName());
-                map.put(METHODS_KEY, ANY_VALUE);
+                logger.warn("NO method found in service interface " + interfaceClass.getName());
+                map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
             } else {
-                map.put(METHODS_KEY, StringUtils.join(new HashSet<String>(Arrays.asList(methods)), ","));
+                map.put(Constants.METHODS_KEY, StringUtils.join(new HashSet<String>(Arrays.asList(methods)), ","));
             }
         }
-
-        /**
-         * Here the token value configured by the provider is used to assign the value to ServiceConfig#token
-         */
-        if(ConfigUtils.isEmpty(token) && provider != null) {
-            token = provider.getToken();
-        }
-
         if (!ConfigUtils.isEmpty(token)) {
             if (ConfigUtils.isDefault(token)) {
-                map.put(TOKEN_KEY, UUID.randomUUID().toString());
+                map.put(Constants.TOKEN_KEY, UUID.randomUUID().toString());
             } else {
-                map.put(TOKEN_KEY, token);
+                map.put(Constants.TOKEN_KEY, token);
             }
         }
-        //init serviceMetadata attachments
-        serviceMetadata.getAttachments().putAll(map);
-
+        if (Constants.LOCAL_PROTOCOL.equals(protocolConfig.getName())) {
+            protocolConfig.setRegister(false);
+            map.put("notify", "false");
+        }
         // export service
-        String host = findConfigedHosts(protocolConfig, registryURLs, map);
-        Integer port = findConfigedPorts(protocolConfig, name, map);
-        URL url = new URL(name, host, port, getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), map);
+        String contextPath = protocolConfig.getContextpath();
+        if ((contextPath == null || contextPath.length() == 0) && provider != null) {
+            contextPath = provider.getContextpath();
+        }
 
-        // You can customize Configurator to append extra parameters
+        String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
+        Integer port = this.findConfigedPorts(protocolConfig, name, map);
+        URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
+
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
             url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                     .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
         }
 
-        //省略 。。。
+        //省略。。。。
     }
     //......
 }
@@ -576,6 +507,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 .setPort(0)
                 .build();
         
+        ServiceClassHolder.getInstance().pushServiceClass(getServiceClass(ref));
         /*
          PROTOCOL.export方法主要是暴露本地服务，根据Wrapper扩展点加载机制加载ProtocolListenerWrapper和
          ListenerExporterWrapper两个Wrapper，然后依次调用ProtocolListenerWrapper->ListenerExporterWrapper
@@ -620,47 +552,43 @@ public class ProtocolListenerWrapper implements Protocol {
 
 服务的注册主要是通过RegistryProtocol类的export方法来完成的，源码如下：
 ```java
-public class RegistryProtocol implements Protocol {
+public class DubboProtocol implements Protocol {
     //.......
-    public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
-        URL registryUrl = getRegistryUrl(originInvoker);
-        // 导出本地url
-        URL providerUrl = getProviderUrl(originInvoker);
+    @Override
+    public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+        URL url = invoker.getUrl();
 
-        // 覆盖订阅数据
-        // FIXME 提供者订阅时，会影响同一JVM，即暴露服务，又引用同一服务的场景，因为subscribed以服务为名缓存的key，
-        //  导致订阅信息覆盖
-        final URL overrideSubscribeUrl = getSubscribedOverrideUrl(providerUrl);
-        final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
-        overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
+        //客户端发起远程调用时，服务端通过key来决定调用哪个Exporter，也就是执行的Invoker
+        String key = serviceKey(url);
+        //创建DubboExporter对象，Invoker实际上就是真正的本地服务实现类实例
+        DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
+        //将key和exporter存入map
+        exporterMap.put(key, exporter);
 
-        providerUrl = overrideUrlWithConfig(providerUrl, overrideSubscribeListener);
-        //生成DubboExport实例，并初始化和打开Dubbo协议链接
-        final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
-
-        // 注册实例
-        final Registry registry = getRegistry(originInvoker);
-        final URL registeredProviderUrl = getUrlToRegistry(providerUrl, registryUrl);
-
-        // 判断是否推迟发布
-        boolean register = providerUrl.getParameter(REGISTER_KEY, true);
-        if (register) {
-            register(registryUrl, registeredProviderUrl);
+        //export an stub service for dispatching event
+        //是否支持本地存根
+        //服务提供者想在调用者上也执行部分逻辑，则设置此参数
+        Boolean isStubSupportEvent = url.getParameter(Constants.STUB_EVENT_KEY, Constants.DEFAULT_STUB_EVENT);
+        //获取是否支持回调服务参数值，默认是false
+        Boolean isCallbackservice = url.getParameter(Constants.IS_CALLBACK_SERVICE, false);
+        if (isStubSupportEvent && !isCallbackservice) {
+            //判断URL中是否有dubbo.stub.event.methods参数，如果有则将存根事件方法存入stubServiceMethods
+            String stubServiceMethods = url.getParameter(Constants.STUB_EVENT_METHODS_KEY);
+            if (stubServiceMethods == null || stubServiceMethods.length() == 0) {
+                if (logger.isWarnEnabled()) {
+                    logger.warn(new IllegalStateException("consumer [" + url.getParameter(Constants.INTERFACE_KEY) +
+                            "], has set stubproxy support event ,but no stub methods founded."));
+                }
+            } else {
+                stubServiceMethodsMap.put(url.getServiceKey(), stubServiceMethods);
+            }
         }
-
-        // register stated url on provider model
-        registerStatedUrl(registryUrl, registeredProviderUrl, register);
-
-        // Deprecated! Subscribe to override rules in 2.6.x or before.
-        registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
-
-        exporter.setRegisterUrl(registeredProviderUrl);
-        exporter.setSubscribeUrl(overrideSubscribeUrl);
-
-        notifyExport(exporter);
-        //确保每次导出时都返回一个新的export实例
-        return new DestroyableExporter<>(exporter);
-    }  
+        
+        //根据URL绑定IP与端口，建立NIO框架的Server
+        openServer(url);
+        optimizeSerialization(url);
+        return exporter;
+    }    
     //......
 }
 ```
@@ -672,14 +600,23 @@ doLocalExport源码如下：
 ```java
 public class RegistryProtocol implements Protocol {
     //......
-    private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker, URL providerUrl) {
+    private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker) {
         String key = getCacheKey(originInvoker);
-
-        return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
-            Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
-            return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);
-        });
-    } 
+        ExporterChangeableWrapper<T> exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
+        if (exporter == null) {
+            synchronized (bounds) {
+                //先从缓存bounds中获取
+                exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
+                //如果没有则创建exporter，并放入缓存
+                if (exporter == null) {
+                    final Invoker<?> invokerDelegete = new InvokerDelegete<T>(originInvoker, getProviderUrl(originInvoker));
+                    exporter = new ExporterChangeableWrapper<T>((Exporter<T>) protocol.export(invokerDelegete), originInvoker);
+                    bounds.put(key, exporter);
+                }
+            }
+        }
+        return exporter;
+    }
     //......
 }
 ```
@@ -743,12 +680,6 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
     //......
 
     public Registry getRegistry(URL url) {
-        if (destroyed.get()) {
-            LOGGER.warn("All registry instances have been destroyed, failed to fetch any instance. " +
-                    "Usually, this means no need to try to do unnecessary redundant resource clearance, all registries has been taken care of.");
-            return DEFAULT_NOP_REGISTRY;
-        }
-
         url = URLBuilder.from(url)
                 .setPath(RegistryService.class.getName())
                 .addParameter(INTERFACE_KEY, RegistryService.class.getName())
@@ -789,12 +720,7 @@ createRegistry方法创建了ZooKeeperRegistry实例，在实例的构造方法�
 ```java
 public abstract class FailbackRegistry extends AbstractRegistry {
     //......
-    
     public void register(URL url) {
-        if (!acceptable(url)) {
-            logger.info("URL " + url + " will not be registered to Registry. Registry " + url + " does not accept service of this protocol type.");
-            return;
-        }
         super.register(url);
         //从失败注册列表中删除注册URL
         removeFailedRegistered(url);

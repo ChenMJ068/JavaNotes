@@ -40,7 +40,7 @@ AbstractConfig类，各类的说明如下：
 接口、版本号等。
 
 ### 1.1 配置初始化
-从ReferenceConfig的afterPropertiesSet方法入手，在历史版本中该方法是这样实现的。源码如下：
+从ReferenceBean的afterPropertiesSet方法入手。源码如下：
 ```java
 public void afterPropertiesSet() throws Exception {
     //如果consumer未注册，则执行下面的内容
@@ -103,115 +103,102 @@ Registries、Monitor等配置。这些均在Spring解析自定义标签加载到
 JdkProxyFactory是利用JDK自带的Proxy来动态代理目标对象的远程通信Invoker类。JavassistProxyFactory是利用Javassist字节码
 技术来创建的远程通信Invoker类。
 
-源码来源于2.7.8版本：
+源码如下：
 ```java
 public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     // ......
     
     private T createProxy(Map<String, String> map) {
-       
-        if (shouldJvmRefer(map)) {
-            URL url = new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
-            invoker = REF_PROTOCOL.refer(interfaceClass, url);
+        URL tmpUrl = new URL("temp", "localhost", 0, map);
+        final boolean isJvmRefer;
+        if (isInjvm() == null) {
+            if (url != null && url.length() > 0) { // if a url is specified, don't do local reference
+                isJvmRefer = false;
+            } else if (InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl)) {
+                // 默认情况下如果本地有服务暴露，就引用本地服务
+                isJvmRefer = true;
+            } else {
+                isJvmRefer = false;
+            }
+        } else {
+            isJvmRefer = isInjvm().booleanValue();
+        }
+
+        if (isJvmRefer) {
+            URL url = new URL(Constants.LOCAL_PROTOCOL, NetUtils.LOCALHOST, 0, interfaceClass.getName()).addParameters(map);
+            invoker = refprotocol.refer(interfaceClass, url);
             if (logger.isInfoEnabled()) {
                 logger.info("Using injvm service " + interfaceClass.getName());
             }
         } else {
-            urls.clear();
-            // 用户指定URL,指定的URL可能是点对点直连地址，也可能是注册中心URL
-            if (url != null && url.length() > 0) { 
-                String[] us = SEMICOLON_SPLIT_PATTERN.split(url);
+            //用户指定的URL，可以是点对点地址，或注册中心地址。
+            if (url != null && url.length() > 0) {
+                String[] us = Constants.SEMICOLON_SPLIT_PATTERN.split(url);
                 if (us != null && us.length > 0) {
                     for (String u : us) {
                         URL url = URL.valueOf(u);
-                        if (StringUtils.isEmpty(url.getPath())) {
+                        if (url.getPath() == null || url.getPath().length() == 0) {
                             url = url.setPath(interfaceName);
                         }
-                        if (UrlUtils.isRegistry(url)) {
-                            urls.add(url.addParameterAndEncoded(REFER_KEY, StringUtils.toQueryString(map)));
+                        if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
+                            urls.add(url.addParameterAndEncoded(Constants.REFER_KEY, StringUtils.toQueryString(map)));
                         } else {
                             urls.add(ClusterUtils.mergeUrl(url, map));
                         }
                     }
                 }
-            } else { 
-                if (!LOCAL_PROTOCOL.equalsIgnoreCase(getProtocol())) {
-                    //检查注册表配置是否存在
-                    checkRegistry();
-                    //通过注册中配置拼装URL
-                    List<URL> us = ConfigValidationUtils.loadRegistries(this, false);
-                    if (CollectionUtils.isNotEmpty(us)) {
-                        for (URL u : us) {
-                            URL monitorUrl = ConfigValidationUtils.loadMonitor(this, u);
-                            if (monitorUrl != null) {
-                                map.put(MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
-                            }
-                            urls.add(u.addParameterAndEncoded(REFER_KEY, StringUtils.toQueryString(map)));
+            } else {//从注册中心的配置组装URL
+                List<URL> us = loadRegistries(false);
+                if (us != null && !us.isEmpty()) {
+                    for (URL u : us) {
+                        URL monitorUrl = loadMonitor(u);
+                        if (monitorUrl != null) {
+                            map.put(Constants.MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
                         }
+                        urls.add(u.addParameterAndEncoded(Constants.REFER_KEY, StringUtils.toQueryString(map)));
                     }
-                    if (urls.isEmpty()) {
-                        throw new IllegalStateException("No such any registry to reference " 
-                        + interfaceName + " on the consumer " + NetUtils.getLocalHost() 
-                        + " use dubbo version " + Version.getVersion() 
-                        + ", please config <dubbo:registry address=\"...\" /> to your spring config.");
-                    }
+                }
+                if (urls == null || urls.isEmpty()) {
+                    throw new IllegalStateException("No such any registry to reference " + interfaceName + " on the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() + ", please config <dubbo:registry address=\"...\" /> to your spring config.");
                 }
             }
 
             if (urls.size() == 1) {
-                invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
+                invoker = refprotocol.refer(interfaceClass, urls.get(0));
             } else {
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
-                //Invokers存放的是所有可用的服务调用者
                 for (URL url : urls) {
-                    invokers.add(REF_PROTOCOL.refer(interfaceClass, url));
-                    if (UrlUtils.isRegistry(url)) {
-                        registryURL = url; // use last registry url
+                    invokers.add(refprotocol.refer(interfaceClass, url));
+                    if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
+                        registryURL = url; 
                     }
                 }
-                // 有注册中心协议的url
-                if (registryURL != null) { 
-                    // 对有注册中心的Cluster，只用AvailableCluster
-                    URL u = registryURL.addParameterIfAbsent(CLUSTER_KEY, ZoneAwareCluster.NAME);
-                    // 加入集群，内部会做一些负载处理
-                    invoker = CLUSTER.join(new StaticDirectory(u, invokers));
-                } else { //不是注册中心的url
-                    invoker = CLUSTER.join(new StaticDirectory(invokers));
+                if (registryURL != null) { // 注册表url可用
+                    // 只有当寄存器的集群可用时，才使用AvailableCluster
+                    URL u = registryURL.addParameter(Constants.CLUSTER_KEY, AvailableCluster.NAME);
+                    invoker = cluster.join(new StaticDirectory(u, invokers));
+                } else { // 不是注册地址
+                    invoker = cluster.join(new StaticDirectory(invokers));
                 }
             }
         }
 
-        if (shouldCheck() && !invoker.isAvailable()) {
-            invoker.destroy();
-            throw new IllegalStateException("Failed to check the status of the service "
-                    + interfaceName
-                    + ". No provider available for the service "
-                    + (group == null ? "" : group + "/")
-                    + interfaceName +
-                    (version == null ? "" : ":" + version)
-                    + " from the url "
-                    + invoker.getUrl()
-                    + " to the consumer "
-                    + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion());
+        Boolean c = check;
+        if (c == null && consumer != null) {
+            c = consumer.isCheck();
+        }
+        if (c == null) {
+            c = true; // default true
+        }
+        if (c && !invoker.isAvailable()) {
+            throw new IllegalStateException("Failed to check the status of the service " + interfaceName + ". No provider available for the service " + (group == null ? "" : group + "/") + interfaceName + (version == null ? "" : ":" + version) + " from the url " + invoker.getUrl() + " to the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion());
         }
         if (logger.isInfoEnabled()) {
             logger.info("Refer dubbo service " + interfaceClass.getName() + " from url " + invoker.getUrl());
         }
-        /**
-         * @since 2.7.0
-         * ServiceData Store
-         */
-        String metadata = map.get(METADATA_KEY);
-        WritableMetadataService metadataService = WritableMetadataService.
-        getExtension(metadata == null ? DEFAULT_METADATA_STORAGE_TYPE : metadata);
-        if (metadataService != null) {
-            URL consumerURL = new URL(CONSUMER_PROTOCOL, map.remove(REGISTER_IP_KEY), 0, 
-            map.get(INTERFACE_KEY), map);
-            metadataService.publishServiceDefinition(consumerURL);
-        }
         // 创建服务代理
-        return (T) PROXY_FACTORY.getProxy(invoker, ProtocolUtils.isGeneric(generic));
+        return (T) proxyFactory.getProxy(invoker);
     }
     
     // ......
@@ -226,29 +213,11 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
 (1).判断当前的服务是本地服务还是远程的:
 
-根据shouldJvmRefer方法中的isJVMRefer参数判断当前调用的是否是本地服务，本地服务可以理解为Provider端。
-```java
-protected boolean shouldJvmRefer(Map<String, String> map) {
-        URL tmpUrl = new URL("temp", "localhost", 0, map);
-        boolean isJvmRefer;
-        if (isInjvm() == null) {
-            // if a url is specified, don't do local reference
-            if (url != null && url.length() > 0) {
-                isJvmRefer = false;
-            } else {
-                // by default, reference local service if there is
-                isJvmRefer = InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl);
-            }
-        } else {
-            isJvmRefer = isInjvm();
-        }
-        return isJvmRefer;
-    }
-```
+根据方法中的isJVMRefer参数判断当前调用的是否是本地服务，本地服务可以理解为Provider端。
 
 (2).根据SPI找到对应的Protocol类，生成对应的URL协议:
 
-在createProxy()方法源码中有调用ConfigValidationUtils.loadRegistries(this, false)方法。该方法的作用是装入Registry URL协
+在createProxy()方法源码中有调用loadRegistries(this, false)方法。该方法的作用是装入Registry URL协
 议，其本质就是将ZooKeeper URL协议更换为Registry URL协议。方法的的核心代码如下：
 ```java
 List<URL> urls = UrlUtils.parseURLs(address, map);
@@ -442,8 +411,7 @@ public abstract class Proxy {
     public static Proxy getProxy(ClassLoader cl, Class<?>... ics) {
         //第一段代码主要是将服务接口的全路径名以分号的方式连接起来，存放cache对象中以便下次使用。
         
-        //MAX_PROXY_COUNT = 65535,服务类接口长度不能大于65535
-        if (ics.length > MAX_PROXY_COUNT) {
+        if (ics.length > 65535) {
             throw new IllegalArgumentException("interface limit exceeded");
         }
 
@@ -646,53 +614,33 @@ DemoResponse demoResponse = demoservice.demo(demoRequest);
 InvokerInvocationHandler包装拦截。InvokerInvocationHandler代理类的代码如下：
 ```java
 public class InvokerInvocationHandler implements InvocationHandler {
-    private static final Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
+
     private final Invoker<?> invoker;
-    private ConsumerModel consumerModel;
 
     public InvokerInvocationHandler(Invoker<?> handler) {
         this.invoker = handler;
-        String serviceKey = invoker.getUrl().getServiceKey();
-        if (serviceKey != null) {
-            this.consumerModel = ApplicationModel.getConsumerModel(serviceKey);
-        }
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        String methodName = method.getName();
+        Class<?>[] parameterTypes = method.getParameterTypes();
         if (method.getDeclaringClass() == Object.class) {
             return method.invoke(invoker, args);
         }
-        String methodName = method.getName();
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length == 0) {
-            //动态代理过滤toString方法
-            if ("toString".equals(methodName)) {
-                return invoker.toString();
-            } else if ("$destroy".equals(methodName)) {
-                invoker.destroy();
-                return null;
-                //动态代理过滤hashCode方法
-            } else if ("hashCode".equals(methodName)) {
-                return invoker.hashCode();
-            }
-            
-            //动态代理过滤equals方法
-        } else if (parameterTypes.length == 1 && "equals".equals(methodName)) {
+        //动态代理过滤toString、hashCode、equals方法
+        if ("toString".equals(methodName) && parameterTypes.length == 0) {
+            return invoker.toString();
+        }
+        if ("hashCode".equals(methodName) && parameterTypes.length == 0) {
+            return invoker.hashCode();
+        }
+        if ("equals".equals(methodName) && parameterTypes.length == 1) {
             return invoker.equals(args[0]);
         }
-        RpcInvocation rpcInvocation = new RpcInvocation(method, invoker.getInterface().getName(), args);
-        String serviceKey = invoker.getUrl().getServiceKey();
-        rpcInvocation.setTargetServiceUniqueName(serviceKey);
-      
-        if (consumerModel != null) {
-            rpcInvocation.put(Constants.CONSUMER_MODEL, consumerModel);
-            rpcInvocation.put(Constants.METHOD_MODEL, consumerModel.getMethodModel(method));
-        }
-
         //将方法和参数封装成为rpcInvocation后调用，recreate方法的主要作用是是在调用时
         //如果发生异常则抛出异常，反之正常返回
-        return invoker.invoke(rpcInvocation).recreate();
+        return invoker.invoke(new RpcInvocation(method, args)).recreate();
     }
 }
 ```
@@ -867,42 +815,25 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
     public Result invoke(final Invocation invocation) throws RpcException {
         //健康检查
         checkWhetherDestroyed();
-
-        // 将附件与调用绑定在一起
-        Map<String, Object> contextAttachments = RpcContext.getContext().getObjectAttachments();
-        if (contextAttachments != null && contextAttachments.size() != 0) {
-            ((RpcInvocation) invocation).addObjectAttachments(contextAttachments);
-        }
+        //定义负载接口类
+        LoadBalance loadbalance = null;
         //获取所有可用的服务列表
         List<Invoker<T>> invokers = list(invocation);
-        //获取默认负载策略，如果暂时没有地址信息，则使用默认的负载均衡策略（RandomLoadBalance）
-        LoadBalance loadbalance = initLoadBalance(invokers, invocation);
+        if (invokers != null && !invokers.isEmpty()) {
+            //获取默认的负载策略
+            loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
+                    .getMethodParameter(invocation.getMethodName(), Constants.LOADBALANCE_KEY, Constants.DEFAULT_LOADBALANCE));
+        }
         //如果是异步则需要加入相应的信息
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
         //根据地址及负载均衡策略发起调用
         return doInvoke(invocation, invokers, loadbalance);
     }
-    
-    protected void checkWhetherDestroyed() {
-        if (destroyed.get()) {
-            throw new RpcException("Rpc cluster invoker for " + getInterface() + " on consumer " 
-            + NetUtils.getLocalHost()
-                    + " use dubbo version " + Version.getVersion()
-                    + " is now destroyed! Can not invoke any more.");
-        }
-    }
-    
-    protected LoadBalance initLoadBalance(List<Invoker<T>> invokers, Invocation invocation) {
-        if (CollectionUtils.isNotEmpty(invokers)) {
-            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
-                    .getMethodParameter(RpcUtils.getMethodName(invocation), LOADBALANCE_KEY, DEFAULT_LOADBALANCE));
-        } else {
-            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(DEFAULT_LOADBALANCE);
-        }
-    }
+  
     
     protected List<Invoker<T>> list(Invocation invocation) throws RpcException {
-        return directory.list(invocation);
+        List<Invoker<T>> invokers = directory.list(invocation);
+        return invokers;
     }
     
     // ......

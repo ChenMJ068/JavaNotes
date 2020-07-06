@@ -11,7 +11,7 @@
 要想理解dubbo的原理，那就阅读源码，因为源码才是一切优秀的想法的实现。
 
 ### dubbo代码架构
-![dubbo源码包结构](../../../docs/img/dubbo/dubbo源码包结构.png)
+![dubbo源码包结构](../../docs/img/dubbo/dubbo源码包结构.png)
 
 具体说明如下：
 - [dubbo-admin](#dubbo-admin):Dubbo自带的控制台管理，用于服务治理和服务监控
@@ -28,7 +28,8 @@
 - [dubbo-rpc](#dubbo-rpc):远程调用模块，抽象各种协议，以及动态代理，只包含一对一的调用，不关心集群的管理。
 
 从Dubbo的官网提供的分层架构图可以看到，整个Dubbo体系共分为十层：
-![dubbo架构图](../../../docs/img/java/dataStructure/dubbo-framework.png)
+
+![dubbo架构图](../../docs/img/dubbo/dubbo-framework.jpg)
 
 **各层主要的功能说明如下：**
 - [Service层](#Service层):这一层和业务实现相结合，根据具体业务设计服务提供者和消费者的实现类和接口类。
@@ -107,50 +108,13 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport implements Co
         registerBeanDefinitionParser("application", new DubboBeanDefinitionParser(ApplicationConfig.class, true));
         registerBeanDefinitionParser("module", new DubboBeanDefinitionParser(ModuleConfig.class, true));
         registerBeanDefinitionParser("registry", new DubboBeanDefinitionParser(RegistryConfig.class, true));
-        registerBeanDefinitionParser("config-center", new DubboBeanDefinitionParser(ConfigCenterBean.class, true));
-        registerBeanDefinitionParser("metadata-report", new DubboBeanDefinitionParser(MetadataReportConfig.class, true));
         registerBeanDefinitionParser("monitor", new DubboBeanDefinitionParser(MonitorConfig.class, true));
-        registerBeanDefinitionParser("metrics", new DubboBeanDefinitionParser(MetricsConfig.class, true));
-        registerBeanDefinitionParser("ssl", new DubboBeanDefinitionParser(SslConfig.class, true));
         registerBeanDefinitionParser("provider", new DubboBeanDefinitionParser(ProviderConfig.class, true));
         registerBeanDefinitionParser("consumer", new DubboBeanDefinitionParser(ConsumerConfig.class, true));
         registerBeanDefinitionParser("protocol", new DubboBeanDefinitionParser(ProtocolConfig.class, true));
         registerBeanDefinitionParser("service", new DubboBeanDefinitionParser(ServiceBean.class, true));
         registerBeanDefinitionParser("reference", new DubboBeanDefinitionParser(ReferenceBean.class, false));
         registerBeanDefinitionParser("annotation", new AnnotationBeanDefinitionParser());
-    }
-
-    /**
-     * Override {@link NamespaceHandlerSupport#parse(Element, ParserContext)} method
-     *
-     * @param element       {@link Element}
-     * @param parserContext {@link ParserContext}
-     * @return
-     * @since 2.7.5
-     */
-    @Override
-    public BeanDefinition parse(Element element, ParserContext parserContext) {
-        BeanDefinitionRegistry registry = parserContext.getRegistry();
-        registerAnnotationConfigProcessors(registry);
-        /**
-         * @since 2.7.8
-         * issue : https://github.com/apache/dubbo/issues/6275
-         */
-        registerCommonBeans(registry);
-        BeanDefinition beanDefinition = super.parse(element, parserContext);
-        setSource(beanDefinition);
-        return beanDefinition;
-    }
-
-    /**
-     * Register the processors for the Spring Annotation-Driven features
-     *
-     * @param registry {@link BeanDefinitionRegistry}
-     * @see AnnotationConfigUtils
-     * @since 2.7.5
-     */
-    private void registerAnnotationConfigProcessors(BeanDefinitionRegistry registry) {
-        AnnotationConfigUtils.registerAnnotationConfigProcessors(registry);
     }
 }
 ```
@@ -164,12 +128,12 @@ Dubbo的架构体系采用的是“微核+插件”，这样做的好处是使�
 SPI全称为Service Provider Interface，是JDK内置的一种服务提供发现功能，一种动态替换发现的机制。举个例子，要想在运行时动
 态地给一个接口添加实现，只需要添加一个实现即可。
 
-![使用SPI需要遵守的规范](../../../docs/img/dubbo/使用SPI需要遵守的规范.png)
+![使用SPI需要遵守的规范](../../docs/img/dubbo/使用SPI需要遵守的规范.png)
 
 **通过一个简单的例子了解java SPI**
 
 工程结构：
-![工程结构](../../../docs/img/dubbo/java spi示例工程结构.png)
+![工程结构](../../docs/img/dubbo/java spi示例工程结构.png)
 
 ```java
 public interface HelloInterface {
@@ -316,7 +280,7 @@ filter和listener等很多扩展未知类，它设计了Protocol$Adaptive的类�
 
 Protocol的扩展点文件在dubbo-rpc子模块的dubbo-rpc-api包中
 
-![protocol配置文件](../../../docs/img/dubbo/protocol配置文件.PNG)
+![protocol配置文件](../../docs/img/dubbo/protocol配置文件.PNG)
 
 而实际Dubbo在启动加载的时候会依次从以下目录中读取配置文件：
 - META-INF/dubbo/internal/      //Dubbo内部实现的各种扩展都放在这个目录中
@@ -434,29 +398,30 @@ public class ExtensionLoader<T> {
         //如果自适应扩展为null，则调用createAdaptiveExtensionClass()方法创建
         return cachedAdaptiveClass = createAdaptiveExtensionClass();
     }
-
     private Class<?> createAdaptiveExtensionClass() {
-        String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
+        String code = createAdaptiveExtensionClassCode();
         ClassLoader classLoader = findClassLoader();
         //动态生成编译
-        org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+        com.alibaba.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(com.alibaba.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
         return compiler.compile(code, classLoader);
     }
     // ......
 }
 ```
 Compiler类是SPI接口类，通过ExtensionLoader进行加载：
-![Compiler配置文件](../../../docs/img/dubbo/Compiler配置文件.PNG)
+
+![Compiler配置文件](../../docs/img/dubbo/compile配置文件.PNG)
 
 org.apache.dubbo.common.compiler.Compiler文件内容如下：
 ```java
-adaptive=org.apache.dubbo.common.compiler.support.AdaptiveCompiler
-jdk=org.apache.dubbo.common.compiler.support.JdkCompiler
-javassist=org.apache.dubbo.common.compiler.support.JavassistCompiler
+adaptive=com.alibaba.dubbo.common.compiler.support.AdaptiveCompiler
+jdk=com.alibaba.dubbo.common.compiler.support.JdkCompiler
+javassist=com.alibaba.dubbo.common.compiler.support.JavassistCompiler
 ```
 
 类继承关系为：
-![Compiler继承图](../../../docs/img/dubbo/Compiler继承图.PNG)
+
+![Compiler继承图](../../docs/img/dubbo/Compiler继承图.PNG)
 
 这三个Compile使用JavassistCompiler作为当前激活的Compiler类，但在AdaptiveCompiler的类定义上面有个@Adaptive注解，表示是
 一个装饰器模式的类，于是整个过程是：从AdaptiveCompiler到JavassistCompiler。AdaptiveCompiler起装饰作用，在里面获取当前
@@ -513,53 +478,42 @@ URL的参数找到具体实现类名称。然后通过ExtensionLoader对象的ge
 ```java
 public class ExtensionLoader<T> {
      // ......
-     //参数instance就是上面说的Protocol$Adaptive实例
-     private T injectExtension(T instance) {
+//参数instance就是上面说的Protocol$Adaptive实例
+    private T injectExtension(T instance) {
+        try {
             //objectFactory是AdaptiveExtensionFactory
-             if (objectFactory == null) {
-                 return instance;
-             }
-             try {
-                 //遍历扩展实例类实例的方法
-                 for (Method method : instance.getClass().getMethods()) {
-                     if (!isSetter(method)) {
-                         continue;
-                     }
-                     /**
-                      * Check {@link DisableInject} to see if we need auto injection for this property
-                      */
-                     if (method.getAnnotation(DisableInject.class) != null) {
-                         continue;
-                     }
-                     //获取方法的参数类型
-                     Class<?> pt = method.getParameterTypes()[0];
-                     if (ReflectUtils.isPrimitives(pt)) {
-                         continue;
-                     }
-     
-                     try {
-                         String property = getSetterProperty(method);
-                         /*
-                         根据参数类型和属性名称从ExtensionFactory中获取其他扩展点的实现类
-                         如果有，则调用set方法注入一个自适应实现类；
-                         如果没有，则返回Protocol$Adaptive
-                          */
-                         Object object = objectFactory.getExtension(pt, property);
-                         if (object != null) {
-                             //为set方法注入一个自适应的实现类
-                             method.invoke(instance, object);
-                         }
-                     } catch (Exception e) {
-                         logger.error("Failed to inject via method " + method.getName()
-                                 + " of interface " + type.getName() + ": " + e.getMessage(), e);
-                     }
-     
-                 }
-             } catch (Exception e) {
-                 logger.error(e.getMessage(), e);
-             }
-             return instance;
-     }
+            if (objectFactory != null) {
+                //遍历扩展实例类实例的方法
+                for (Method method : instance.getClass().getMethods()) {
+                    if (method.getName().startsWith("set")
+                            && method.getParameterTypes().length == 1
+                            && Modifier.isPublic(method.getModifiers())) {
+                        //获取方法的参数类型
+                        Class<?> pt = method.getParameterTypes()[0];
+                        try {
+                            String property = method.getName().length() > 3 ? method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4) : "";
+                            /*
+                             根据参数类型和属性名称从ExtensionFactory中获取其他扩展点的实现类
+                             如果有，则调用set方法注入一个自适应实现类；
+                             如果没有，则返回Protocol$Adaptive
+                            */
+                            Object object = objectFactory.getExtension(pt, property);
+                            if (object != null) {
+                                //为set方法注入一个自适应的实现类
+                                method.invoke(instance, object);
+                            }
+                        } catch (Exception e) {
+                            logger.error("fail to inject via method " + method.getName()
+                                    + " of interface " + type.getName() + ": " + e.getMessage(), e);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return instance;
+    }
      /**
      * 通过截取set方法名获取属性名<p>
      * return "", if setter name with length less than 3
@@ -611,74 +565,18 @@ public class ExtensionLoader<T> {
                 //4.对上面依赖注入的实例再次进行包装。
                 //并遍历Set中每一个包装类，将上面获取的class实例以构造参数的方式注入，形成调用链
                 Set<Class<?>> wrapperClasses = cachedWrapperClasses;
-                if (CollectionUtils.isNotEmpty(wrapperClasses)) {
+                if (wrapperClasses != null && !wrapperClasses.isEmpty()) {
                     //关键代码，将instance类通过构造方法注入Wrapper类，形成调用链
                     for (Class<?> wrapperClass : wrapperClasses) {
                         instance = injectExtension((T) wrapperClass.getConstructor(type).newInstance(instance));
                     }
                 }
-                //5.初始化组件
-                initExtension(instance);
                 return instance;
             } catch (Throwable t) {
                 throw new IllegalStateException("Extension instance (name: " + name + ", class: " +
                         type + ") couldn't be instantiated: " + t.getMessage(), t);
             }
-        }
-        
-        private T injectExtension(T instance) {
-        
-                if (objectFactory == null) {
-                    return instance;
-                }
-        
-                try {
-                    for (Method method : instance.getClass().getMethods()) {
-                        if (!isSetter(method)) {
-                            continue;
-                        }
-                        /**
-                         * Check {@link DisableInject} to see if we need auto injection for this property
-                         */
-                        if (method.getAnnotation(DisableInject.class) != null) {
-                            continue;
-                        }
-                        Class<?> pt = method.getParameterTypes()[0];
-                        if (ReflectUtils.isPrimitives(pt)) {
-                            continue;
-                        }
-        
-                        try {
-                            String property = getSetterProperty(method);
-                            Object object = objectFactory.getExtension(pt, property);
-                            if (object != null) {
-                                method.invoke(instance, object);
-                            }
-                        } catch (Exception e) {
-                            logger.error("Failed to inject via method " + method.getName()
-                                    + " of interface " + type.getName() + ": " + e.getMessage(), e);
-                        }
-        
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
-                return instance;
-            }
-        
-        private void initExtension(T instance) {
-            if (instance instanceof Lifecycle) {
-                Lifecycle lifecycle = (Lifecycle) instance;
-                lifecycle.initialize();
-            }
-        }
+    }
     //......
 }
 ```
-
-以上dubbo源码截止时间为2020-06-15
-
-
-
-
-
