@@ -8,7 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/JavaNotes-design-pattern.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-design-pattern/JavaNotes-design-pattern.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/JavaNotes-dubbo.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/JavaNotes-dubbo.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/JavaNotes-java-core.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-java-core/JavaNotes-java-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-api/dubbo-demo-api.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-api/dubbo-demo-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-leetcode/JavaNotes-leetcode.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-leetcode/JavaNotes-leetcode.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-consumer/dubbo-demo-consumer.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-consumer/dubbo-demo-consumer.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-provider/dubbo-demo-provider.iml" filepath="$PROJECT_DIR$/JavaNotes-codes/JavaNotes-dubbo/dubbo-demo-provider/dubbo-demo-provider.iml" />
     </modules>
