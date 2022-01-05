@@ -10,25 +10,26 @@ import java.util.Map;
  * @version Llibrary.class, v 0.1 2020/4/19 16:39  Exp$
  */
 public class Library {
-    private Map<String,Book> bookPools = new HashMap<>();
+    private Map<String, Book> bookPools = new HashMap<>();
 
     private static Library library = new Library();
 
-    public static Library getInstance(){
+    public static Library getInstance() {
         return library;
     }
 
-    public Book libToBorrow(String bookName){
+    public Book libToBorrow(String bookName) {
         Book book = null;
-        if (bookPools.containsKey(bookName)){
+        if (bookPools.containsKey(bookName)) {
             book = bookPools.get(bookName);
-        }else{
+        } else {
             book = new ConcreteBook(bookName);
-            bookPools.put(bookName,book);
+            bookPools.put(bookName, book);
         }
         return book;
     }
-    public int getAllBookSize(){
+
+    public int getAllBookSize() {
         return bookPools.size();
     }
 }

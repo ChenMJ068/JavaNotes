@@ -10,7 +10,7 @@ public class CirSinglyLinkedList<T> {
 
     public Node<T> head;
 
-    public CirSinglyLinkedList(){
+    public CirSinglyLinkedList() {
         this.head = new Node<T>();
         this.head.next = this.head;
     }
@@ -21,17 +21,17 @@ public class CirSinglyLinkedList<T> {
 
     @Override
     public String toString() {
-        String string="(";
+        String string = "(";
         Node<T> node = this.head.next;
         while (node != this.head) {
             string += node.data.toString();
-            if (node.next != null){
+            if (node.next != null) {
                 string += ",";
             }
             node = node.next;
         }
 
-        return string+")";
+        return string + ")";
     }
 
     //...其他方法参考同SinglyLinkedList.class

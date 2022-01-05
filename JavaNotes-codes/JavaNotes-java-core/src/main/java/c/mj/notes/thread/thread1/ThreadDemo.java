@@ -11,6 +11,6 @@ public class ThreadDemo {
         }).start();*/
 
         //String str = Long.toString();
-        System.out.println((long) (System.currentTimeMillis()+Math.floor(Math.random()*100)));
+        System.out.println((long) (System.currentTimeMillis() + Math.floor(Math.random() * 100)));
     }
 }

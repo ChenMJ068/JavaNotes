@@ -2,6 +2,7 @@ package c.mj.notes.search;
 
 /**
  * 二叉排序树
+ *
  * @author ChenMJ
  * @version BinarySortTree.class, v 0.1 2020/4/14 13:08  Exp$
  */
@@ -77,16 +78,16 @@ public class BinarySortTree {
     public boolean isEmpty() {
         return root == null;
     }
+
     /**
      * 查找最小返回值是Node，调用查看结果时需要.value
      */
-    public Node findMin(Node t)
-    {
+    public Node findMin(Node t) {
         if (t == null) {
             return null;
         } else if (t.left == null) {
             return t;
-        } else{
+        } else {
             return (findMin(t.left));
         }
     }
@@ -94,13 +95,12 @@ public class BinarySortTree {
     /**
      * 查找最大
      */
-    public Node findMax(Node t)
-    {
+    public Node findMax(Node t) {
         if (t == null) {
             return null;
         } else if (t.right == null) {
             return t;
-        } else{
+        } else {
             return (findMax(t.right));
         }
     }
@@ -108,8 +108,7 @@ public class BinarySortTree {
     /**
      * 验证是否存在
      */
-    public boolean isContains(int x)
-    {
+    public boolean isContains(int x) {
         Node current = root;
         if (root == null) {
             return false;
@@ -129,9 +128,9 @@ public class BinarySortTree {
     }
 
     /**
-     *  插入
+     * 插入
      */
-    public Node insert(int x){
+    public Node insert(int x) {
         Node current = root;
         if (root == null) {
             root = new Node(x);
@@ -140,14 +139,14 @@ public class BinarySortTree {
         while (true) {
             if (x < current.value) {
                 if (current.left == null) {
-                    return current.left = new Node(x);}
-                else {
+                    return current.left = new Node(x);
+                } else {
                     current = current.left;
                 }
-            }else if (x > current.value) {
+            } else if (x > current.value) {
                 if (current.right == null) {
                     return current.right = new Node(x);
-                }else{
+                } else {
                     current = current.right;
                 }
             }
@@ -157,8 +156,7 @@ public class BinarySortTree {
     /**
      * 删除
      */
-    public Node remove(int x, Node t)
-    {
+    public Node remove(int x, Node t) {
         if (t == null) {
             return null;
         }
@@ -166,7 +164,7 @@ public class BinarySortTree {
             t.left = remove(x, t.left);
         } else if (x > t.value) {
             t.right = remove(x, t.right);
-        } else if (t.left != null && t.right != null){
+        } else if (t.left != null && t.right != null) {
             // 左右节点均不空
             // 找到右侧最小值替代
             t.value = findMin(t.right).value;

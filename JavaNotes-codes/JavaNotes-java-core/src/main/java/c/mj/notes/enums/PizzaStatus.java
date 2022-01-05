@@ -2,6 +2,7 @@ package c.mj.notes.enums;
 
 /**
  * 枚举示例类
+ *
  * @author ChenMJ
  * @version PizzaStatus.class, v 0.1 2020/4/14 10:51  Exp$
  */
@@ -13,7 +14,8 @@ public enum PizzaStatus {
     //配送
     DELIVERED;
 }
-class Main{
+
+class Main {
     public static void main(String[] args) {
         System.out.println(PizzaStatus.ORDERED.name());//ORDERED
         System.out.println(PizzaStatus.READY);//ORDERED

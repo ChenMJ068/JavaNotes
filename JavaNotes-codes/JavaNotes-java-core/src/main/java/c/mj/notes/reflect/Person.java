@@ -1,6 +1,6 @@
 package c.mj.notes.reflect;
 
-public class Person implements MyInteface ,MyInterface2{
+public class Person implements MyInteface, MyInterface2 {
     private int id;
     private String name;
     private String age;
@@ -49,19 +49,20 @@ public class Person implements MyInteface ,MyInterface2{
     public void setAge(String age) {
         this.age = age;
     }
-    private static void privateMethod(){
+
+    private static void privateMethod() {
         System.out.println("private method ...");
     }
 
-    protected static void protectedMethod(){
+    protected static void protectedMethod() {
         System.out.println("protected method ...");
     }
 
-    static void defMethod(){
+    static void defMethod() {
         System.out.println("def method ...");
     }
 
-    public static void staticMethod(){
+    public static void staticMethod() {
         System.out.println("static  method ...");
     }
 

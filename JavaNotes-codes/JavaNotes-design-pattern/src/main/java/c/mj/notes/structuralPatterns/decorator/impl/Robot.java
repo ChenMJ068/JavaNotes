@@ -15,7 +15,7 @@ public class Robot implements Transform {
         this.say();
     }
 
-    public void say(){
+    public void say() {
         System.out.println("我们会说话");
     }
 }

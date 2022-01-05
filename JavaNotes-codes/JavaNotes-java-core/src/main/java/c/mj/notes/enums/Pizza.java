@@ -10,22 +10,22 @@ public class Pizza {
 
     private PizzaStatus status;
 
-    public enum PizzaStatus{
-        ORDERED (5) {
+    public enum PizzaStatus {
+        ORDERED(5) {
             @Override
-            public boolean isOrdered(){
+            public boolean isOrdered() {
                 return true;
             }
         },
-        READY (2){
+        READY(2) {
             @Override
-            public boolean isReady(){
+            public boolean isReady() {
                 return true;
             }
         },
-        DELIVERED (0){
+        DELIVERED(0) {
             @Override
-            public boolean isDelivered(){
+            public boolean isDelivered() {
                 return true;
             }
         };
@@ -37,11 +37,17 @@ public class Pizza {
 
         }
 
-        public boolean isOrdered() {return false;}
+        public boolean isOrdered() {
+            return false;
+        }
 
-        public boolean isReady() {return false;}
+        public boolean isReady() {
+            return false;
+        }
 
-        public boolean isDelivered(){return false;}
+        public boolean isDelivered() {
+            return false;
+        }
 
         public int getTimeToDelivery() {
             return timeToDelivery;
@@ -52,6 +58,7 @@ public class Pizza {
         }
 
     }
+
     public boolean isDeliverable() {
         return this.status.isReady();
     }

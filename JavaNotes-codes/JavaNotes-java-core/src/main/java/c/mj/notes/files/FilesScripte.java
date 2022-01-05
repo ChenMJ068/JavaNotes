@@ -9,12 +9,12 @@ import java.io.IOException;
  */
 public class FilesScripte {
     public static void main(String[] args) throws IOException {
-       createNewFile("tEcdCdinf");
-       String tmp = "Inse)";
+        createNewFile("tEcdCdinf");
+        String tmp = "Inse)";
     }
 
-    private static void createNewFile(String name) throws IOException{
-        File file = new File("d:"+File.separator+name+".sql");
+    private static void createNewFile(String name) throws IOException {
+        File file = new File("d:" + File.separator + name + ".sql");
         file.createNewFile();
     }
 }

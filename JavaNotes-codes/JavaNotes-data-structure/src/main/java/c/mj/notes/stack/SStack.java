@@ -2,10 +2,11 @@ package c.mj.notes.stack;
 
 /**
  * 栈抽象数据类型
+ *
  * @author ChenMJ
  * @version SStack.class, v 0.1 2020/4/9 16:55 n-cz Exp$
  */
-public interface SStack<T>{
+public interface SStack<T> {
     /**
      * 判断是否为空栈
      */

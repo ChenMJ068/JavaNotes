@@ -16,7 +16,8 @@
         <module>JavaNotes-java-core</module>
         <module>JavaNotes-design-pattern</module>
         <module>JavaNotes-dubbo</module>
-        <module>JavaNotes-leecode</module>
+        <module>JavaNotes-leetcode</module>
+        <module>JavaNotes-spring5-code</module>
     </modules>
 
 

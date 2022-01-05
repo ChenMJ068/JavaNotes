@@ -10,26 +10,26 @@ import c.mj.notes.structuralPatterns.adapter.impl.UserCenter;
  */
 public enum AdapterEnum {
     /***/
-    LOGIN{
+    LOGIN {
         @Override
-        public Login getObject(){
+        public Login getObject() {
             return new Login();
         }
     },
-    UPDATE_PWD{
+    UPDATE_PWD {
         @Override
-        public UpdatePwd getObject(){
+        public UpdatePwd getObject() {
             return new UpdatePwd();
         }
     },
-    USER_CENTER{
+    USER_CENTER {
         @Override
-        public UserCenter getObject(){
+        public UserCenter getObject() {
             return new UserCenter();
         }
     };
 
-    public Object getObject(){
+    public Object getObject() {
         return null;
     }
 }

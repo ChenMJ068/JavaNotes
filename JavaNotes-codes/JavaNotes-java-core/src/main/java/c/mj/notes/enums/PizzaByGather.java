@@ -8,7 +8,7 @@ import java.util.EnumSet;
  */
 public class PizzaByGather {
 
-    private static EnumSet<PizzaStatus> undeliveredPizzaStatuses =EnumSet.of(PizzaStatus.ORDERED,PizzaStatus.READY);
+    private static EnumSet<PizzaStatus> undeliveredPizzaStatuses = EnumSet.of(PizzaStatus.ORDERED, PizzaStatus.READY);
 
     public enum PizzaStatus {
         //下单

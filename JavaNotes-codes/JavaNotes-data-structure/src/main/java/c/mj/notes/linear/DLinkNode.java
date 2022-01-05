@@ -6,7 +6,7 @@ package c.mj.notes.linear;
  */
 public class DLinkNode<T> {
     public T data;
-    public DLinkNode<T> prev,next;
+    public DLinkNode<T> prev, next;
 
     public DLinkNode(T data, DLinkNode<T> prev, DLinkNode<T> next) {
         this.data = data;
@@ -15,6 +15,6 @@ public class DLinkNode<T> {
     }
 
     public DLinkNode() {
-        this(null,null,null);
+        this(null, null, null);
     }
 }

@@ -31,7 +31,7 @@ public abstract class Shape implements Cloneable {
         Object clone = null;
         try {
             clone = super.clone();
-        }catch (CloneNotSupportedException e){
+        } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
         return clone;

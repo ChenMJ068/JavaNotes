@@ -19,13 +19,15 @@ public class HospitalProxy {
         this.pharmacy = new Pharmacy();
     }
 
-    public void setRegistration(){
+    public void setRegistration() {
         registration.proxy();
     }
-    public void setSeeDoctor(){
+
+    public void setSeeDoctor() {
         seeDoctor.proxy();
     }
-    public void setPharmacy(){
+
+    public void setPharmacy() {
         pharmacy.proxy();
     }
 }

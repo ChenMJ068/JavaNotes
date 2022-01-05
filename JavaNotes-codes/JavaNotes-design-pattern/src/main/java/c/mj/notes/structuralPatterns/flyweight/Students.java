@@ -12,7 +12,7 @@ public class Students {
 
     private static Library library;
 
-    private static void studentBorrow(String bookName){
+    private static void studentBorrow(String bookName) {
         books.add(library.libToBorrow(bookName));
     }
 
@@ -24,7 +24,7 @@ public class Students {
 
         books.forEach(Book::borrow);
 
-        System.out.println("学生一共借出了"+books.size()+"本书！");
-        System.out.println("图书馆实际借出了"+ library.getAllBookSize()+"本书！");
+        System.out.println("学生一共借出了" + books.size() + "本书！");
+        System.out.println("图书馆实际借出了" + library.getAllBookSize() + "本书！");
     }
 }

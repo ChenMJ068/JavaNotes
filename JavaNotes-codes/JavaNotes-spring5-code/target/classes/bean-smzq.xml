@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="orders" class="c.mj.note.ioc.bean.Orders" init-method="initMethod" destroy-method="destroyMethod">
+        <property name="id" value="1"/>
+        <property name="name" value="phone"/>
+    </bean>
+
+    <!--配置后置处理器-->
+    <bean id="myBean" class="c.mj.note.ioc.bean.MyBeanPost"></bean>
+</beans>

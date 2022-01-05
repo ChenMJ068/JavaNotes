@@ -4,6 +4,7 @@ import c.mj.notes.linear.impl.SinglyLinkedList;
 
 /**
  * 优先队列
+ *
  * @author ChenMJ
  * @version PriorityQueue.class, v 0.1 2020/4/9 18:01 n-cz Exp$
  */

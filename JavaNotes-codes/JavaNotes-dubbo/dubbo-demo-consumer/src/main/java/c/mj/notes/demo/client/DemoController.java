@@ -16,7 +16,7 @@ public class DemoController {
     DemoFacade demoFacade;
 
     @RequestMapping(value = "/say")
-    public String say(){
+    public String say() {
         String demo = demoFacade.say("dubbo");
         System.out.println(demoFacade.say("Hello,What you name?"));
         return demo;

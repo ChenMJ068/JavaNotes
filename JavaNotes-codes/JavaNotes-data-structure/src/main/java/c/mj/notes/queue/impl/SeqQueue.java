@@ -4,6 +4,7 @@ import c.mj.notes.queue.QQueue;
 
 /**
  * 顺序循环队列
+ *
  * @author ChenMJ
  * @version SeqQueue.class, v 0.1 2020/4/9 18:01 n-cz Exp$
  */
@@ -17,10 +18,10 @@ public class SeqQueue<T> implements QQueue<T> {
      * front 队列头下标
      * rear 队列尾下标
      */
-    private int front,rear;
+    private int front, rear;
 
     public SeqQueue(int size) {
-        if (size < 64){
+        if (size < 64) {
             //设置队列最小值
             size = 64;
         }
@@ -40,17 +41,17 @@ public class SeqQueue<T> implements QQueue<T> {
 
     @Override
     public void enqueue(T t) {
-        if ( t == null){
+        if (t == null) {
             return;
         }
         //扩容顺序循环队列条件
-        if (this.front == (this.rear+1) % this.element.length){
+        if (this.front == (this.rear + 1) % this.element.length) {
             Object[] tmp = this.element;
-            this.element = new Object[tmp.length*2];
-            int i = this.front,j=0;
-            while (i != this.rear){
+            this.element = new Object[tmp.length * 2];
+            int i = this.front, j = 0;
+            while (i != this.rear) {
                 this.element[j] = tmp[j];
-                i = (i+1) % tmp.length;
+                i = (i + 1) % tmp.length;
                 j++;
             }
             this.front = 0;
@@ -62,7 +63,7 @@ public class SeqQueue<T> implements QQueue<T> {
 
     @Override
     public T dequeue() {
-        if (isEmpty()){
+        if (isEmpty()) {
             return null;
         }
         T tmp = (T) this.element[this.front];
@@ -73,12 +74,12 @@ public class SeqQueue<T> implements QQueue<T> {
     @Override
     public String toString() {
         String str = "(";
-        if (!isEmpty()){
+        if (!isEmpty()) {
             str += this.element[this.front].toString();
             int i = (this.front + 1) % this.element.length;
-            while (i != this.rear){
-                str +=","+this.element[i].toString();
-                i = (i+1) % this.element.length;
+            while (i != this.rear) {
+                str += "," + this.element[i].toString();
+                i = (i + 1) % this.element.length;
             }
         }
         return str + ")";

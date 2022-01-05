@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="emp" class="c.mj.note.ioc.bean.Emp">
+        <property name="name" value="zhangsan"/>
+        <property name="ender" value="nan"/>
+        <!-- 级联赋值-->
+        <property name="dept" ref="dept"/>
+        <!--  -->
+        <property name="dept.name" value="销售部"/>
+    </bean>
+
+
+    <bean id="dept" class="c.mj.note.ioc.bean.Dept">
+        <property name="name" value="安保部"/>
+    </bean>
+</beans>

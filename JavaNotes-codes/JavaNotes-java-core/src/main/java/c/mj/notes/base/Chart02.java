@@ -2,12 +2,12 @@ package c.mj.notes.base;
 
 public class Chart02 {
     public static void main(String[] args) {
-        Foo goo =  new Goo();
+        Foo goo = new Goo();
     }
 
 }
 
-class Foo{
+class Foo {
     int foo = 10;
 
     public int getFoo() {
@@ -19,9 +19,9 @@ class Foo{
     }
 }
 
-class Goo extends Foo{
+class Goo extends Foo {
     {
         setFoo(5);
-        System.out.println("======:"+getFoo());
+        System.out.println("======:" + getFoo());
     }
 }

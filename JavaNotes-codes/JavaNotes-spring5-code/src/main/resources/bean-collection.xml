@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="stu" class="c.mj.note.ioc.collections.Stu">
+        <!--数组类型注入-->
+        <property name="courses">
+            <array>
+                <value>Java课程</value>
+                <value>数据库管理</value>
+            </array>
+        </property>
+
+        <!--list类型注入-->
+        <property name="list">
+            <list>
+                <value>张三</value>
+                <value>李四</value>
+            </list>
+        </property>
+        <!--map类型注入-->
+        <property name="maps">
+            <map>
+                <entry key="JAVA" value="java"/>
+                <entry key="PHP" value="php"/>
+            </map>
+        </property>
+        <!--set数组类型注入-->
+        <property name="sets">
+            <set>
+                <value>MySql</value>
+                <value>Oracle</value>
+            </set>
+        </property>
+    </bean>
+</beans>

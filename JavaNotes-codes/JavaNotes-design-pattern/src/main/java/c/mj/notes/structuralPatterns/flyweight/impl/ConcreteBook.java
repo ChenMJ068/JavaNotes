@@ -15,6 +15,6 @@ public class ConcreteBook implements Book {
 
     @Override
     public void borrow() {
-        System.out.println("图书馆借出一本书，书名:"+this.name);
+        System.out.println("图书馆借出一本书，书名:" + this.name);
     }
 }

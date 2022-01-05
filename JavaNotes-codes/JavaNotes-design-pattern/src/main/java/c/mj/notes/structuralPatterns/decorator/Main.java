@@ -1,4 +1,5 @@
 package c.mj.notes.structuralPatterns.decorator;
+
 import c.mj.notes.structuralPatterns.decorator.impl.Robot;
 
 /**

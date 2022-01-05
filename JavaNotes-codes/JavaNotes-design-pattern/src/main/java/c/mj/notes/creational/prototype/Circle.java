@@ -6,8 +6,8 @@ package c.mj.notes.creational.prototype;
  */
 public class Circle extends Shape {
 
-    public Circle(){
-       this.setType("Circle");
+    public Circle() {
+        this.setType("Circle");
     }
 
     @Override

@@ -2,6 +2,7 @@ package c.mj.notes.enums;
 
 /**
  * 枚举类型的属性,方法和构造函数
+ *
  * @author ChenMJ
  * @version PizzaByUseDefined.class, v 0.1 2020/4/14 11:02  Exp$
  */
@@ -17,11 +18,11 @@ public class PizzaByUseDefined {
         DELIVERED;
     }
 
-    public boolean isDelivered(){
+    public boolean isDelivered() {
         return getPizzaStatus() == PizzaStatus.DELIVERED;
     }
 
-    public boolean isDeliverable(){
+    public boolean isDeliverable() {
         return getPizzaStatus() == PizzaStatus.READY;
     }
 

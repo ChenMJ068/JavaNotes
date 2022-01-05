@@ -3,18 +3,17 @@ package c.mj.notes.reflect;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 public class Main {
     public static void main(String[] args) throws InstantiationException, IllegalAccessException {
-       //demo1();
+        //demo1();
         //demo2();
         //demo3();
         //demo4();
         //demo5();
         demo6();
     }
-
-
 
 
     public static void demo6() throws IllegalAccessException, InstantiationException {
@@ -25,13 +24,13 @@ public class Main {
             e.printStackTrace();
         }
         //获取当前反射所代表类（接口）的对象（实例）
-        Object instance = perClazz.newInstance();
+        Object instance = Objects.requireNonNull(perClazz).newInstance();
         Person person = (Person) instance;
         person.interfaceMethod();
 
     }
 
-    public static void demo5(){
+    public static void demo5() {
         Class<?> perclazz = null;
         try {
             perclazz = Class.forName("c.mj.notes.reflect.Person");
@@ -40,25 +39,25 @@ public class Main {
         }
 
         Constructor<?>[] constructors = perclazz.getConstructors();
-        for (Constructor<?> con: constructors) {
+        for (Constructor<?> con : constructors) {
             System.out.println(con);
         }
 
         System.out.println("==============");
 
         Field[] fields = perclazz.getFields();
-        for (Field field: fields) {
+        for (Field field : fields) {
             System.out.println(field);
         }
 
         System.out.println("==============");
         Field[] declaredFields = perclazz.getDeclaredFields();
-        for(Field field: declaredFields){
+        for (Field field : declaredFields) {
             System.out.println(field);
         }
     }
 
-    public static void demo4(){
+    public static void demo4() {
         Class<?> perclazz = null;
         try {
             perclazz = Class.forName("c.mj.notes.reflect.Person");
@@ -70,46 +69,46 @@ public class Main {
         System.out.println(superClass);
     }
 
-    public static void demo3(){
+    public static void demo3() {
         Class<?> perClazz = null;
-        try{
+        try {
             perClazz = Class.forName("c.mj.notes.reflect.Person");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         Class<?>[] clazzs = perClazz.getInterfaces();
-        for (Class<?> clazz :clazzs ) {
+        for (Class<?> clazz : clazzs) {
             System.out.println(clazz);
         }
     }
 
-    public static void demo2(){
+    public static void demo2() {
         Class<?> perClazz = null;
-        try{
-             perClazz = Class.forName("c.mj.notes.reflect.Person");
-        }catch (Exception e){
+        try {
+            perClazz = Class.forName("c.mj.notes.reflect.Person");
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         Method[] methods = perClazz.getMethods();
-        for (Method method :methods){
+        for (Method method : methods) {
             System.out.println(method);
         }
 
 
         System.out.println("==========================================");
         methods = perClazz.getDeclaredMethods();
-        for (Method method :methods){
+        for (Method method : methods) {
             System.out.println(method);
         }
     }
 
-    public static void demo1(){
+    public static void demo1() {
         System.out.println("==1===================");
-        try{
+        try {
             Class<?> perClazz1 = Class.forName("c.mj.notes.reflect.Person");
             System.out.println(perClazz1);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

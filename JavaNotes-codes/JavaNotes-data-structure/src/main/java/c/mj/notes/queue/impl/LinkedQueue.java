@@ -10,10 +10,10 @@ import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
  */
 public class LinkedQueue<T> implements QQueue<T> {
 
-    private Node<T> front,rear;
+    private Node<T> front, rear;
 
     public LinkedQueue() {
-        this.front =  this.rear = null;
+        this.front = this.rear = null;
     }
 
     @Override
@@ -23,13 +23,13 @@ public class LinkedQueue<T> implements QQueue<T> {
 
     @Override
     public void enqueue(T t) {
-        if (t == null){
+        if (t == null) {
             return;
         }
-        Node<T> node = new Node<T>(t,null);
-        if (this.front == null){
+        Node<T> node = new Node<T>(t, null);
+        if (this.front == null) {
             this.front = node;
-        }else{
+        } else {
             this.rear.next = node;
         }
         this.rear = node;
@@ -37,14 +37,14 @@ public class LinkedQueue<T> implements QQueue<T> {
 
     @Override
     public T dequeue() {
-        if (isEmpty()){
+        if (isEmpty()) {
             return null;
         }
         //取得对头元素
         T tmp = this.front.data;
         //删除对头结点
         this.front = this.front.next;
-        if (this.front == null){
+        if (this.front == null) {
             this.rear = null;
         }
         return tmp;

@@ -1,7 +1,6 @@
 package c.mj.notes.base.proxy;
 
 /**
- *
  * @author admin
  * @version 1.0.0
  * @ClassName Main.java

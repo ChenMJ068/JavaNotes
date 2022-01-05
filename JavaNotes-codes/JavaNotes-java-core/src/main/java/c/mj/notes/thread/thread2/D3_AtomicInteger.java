@@ -16,14 +16,14 @@ public class D3_AtomicInteger {
         CountDownLatch latch = new CountDownLatch(threads.length);
 
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new Thread(()->{
+            threads[i] = new Thread(() -> {
                 for (int j = 0; j < 10000; j++) {
                     m.incrementAndGet();//m++
                 }
                 latch.countDown();
             });
         }
-        Arrays.stream(threads).forEach((t)->t.start());
+        Arrays.stream(threads).forEach((t) -> t.start());
 
         latch.await();
 

@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 public class DemoFacadeImpl implements DemoFacade {
     @Override
     public String say(String str) {
-        if (StringUtils.isEquals("dubbo",str)){
+        if (StringUtils.isEquals("dubbo", str)) {
             return "Yes,I'm dubbo!";
-        }else{
+        } else {
             return "Hi,My name is Dubbo";
         }
     }

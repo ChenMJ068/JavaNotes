@@ -17,17 +17,17 @@ public class ShapeFactory extends AbstractFactory {
     public final static String SQUARE = "SQUARE";
 
     @Override
-    public Shape getShape(String shapeType){
-        if (shapeType == null){
+    public Shape getShape(String shapeType) {
+        if (shapeType == null) {
             return null;
         }
-        if (shapeType.equalsIgnoreCase(CIRCLE)){
+        if (shapeType.equalsIgnoreCase(CIRCLE)) {
             return new Circle();
         }
-        if (shapeType.equalsIgnoreCase(RECTANGLE)){
+        if (shapeType.equalsIgnoreCase(RECTANGLE)) {
             return new Rectangle();
         }
-        if (shapeType.equalsIgnoreCase(SQUARE)){
+        if (shapeType.equalsIgnoreCase(SQUARE)) {
             return new Square();
         }
         return null;
