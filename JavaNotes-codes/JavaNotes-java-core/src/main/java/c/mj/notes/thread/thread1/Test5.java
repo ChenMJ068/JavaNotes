@@ -1,7 +1,6 @@
 package c.mj.notes.thread.thread1;
 
 import lombok.extern.slf4j.Slf4j;
-import sun.jvmstat.perfdata.monitor.PerfStringVariableMonitor;
 
 /**
  * create class Test5.java @version 1.0.0 by @author ChenMJ @date 2021-12-31 20:39:00
